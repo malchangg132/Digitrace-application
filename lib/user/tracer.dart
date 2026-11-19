@@ -1,0 +1,608 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'terima_kasih.dart';
+
+//  WARNA 
+const Color _kBlueDark = Color(0xFF264D7A);
+const Color _kLabel = Color(0xFF2F5A8A);
+const Color _kSubText = Color(0xFF3F5E86);
+const Color _kBorder = Color(0xFFDDE2EA);
+const Color _kInputBorder = Color(0xFFE4E8EF);
+const Color _kHint = Color(0xFFB4BAC5);
+const Color _kButtonOff = Color(0xFF8DA0BD);
+
+
+class TracerResult {
+  final String status;
+  final String namaUniversitas;
+  final String programStudi;
+  final String perusahaan;
+  final String posisi;
+
+  const TracerResult({
+    required this.status,
+    required this.namaUniversitas,
+    required this.programStudi,
+    required this.perusahaan,
+    required this.posisi,
+  });
+}
+
+class TracerScreen extends StatefulWidget {
+  const TracerScreen({super.key});
+
+  @override
+  State<TracerScreen> createState() => _TracerScreenState();
+}
+
+class _TracerScreenState extends State<TracerScreen> {
+  static const List<String> _fieldNames = [
+    'nama',
+    'ttl',
+    'lulus',
+    'jurusan',
+    'email',
+    'hp',
+    'alamat',
+    'status',
+    'pendidikan',
+    'universitas',
+    'prodi',
+    'masuk',
+    'statusPendidikan',
+    'statusKerja',
+    'perusahaan',
+    'posisi',
+    'bidang',
+    'lokasi',
+  ];
+
+  // Field yang wajib diisi (Data Pekerjaan boleh kosong, mis. kalau kuliah)
+  static const List<String> _requiredNames = [
+    'nama',
+    'ttl',
+    'lulus',
+    'jurusan',
+    'email',
+    'hp',
+    'alamat',
+    'status',
+    'pendidikan',
+    'universitas',
+    'prodi',
+    'masuk',
+    'statusPendidikan',
+  ];
+
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  AutovalidateMode _autovalidate = AutovalidateMode.disabled;
+
+  final Map<String, TextEditingController> _c = {
+    for (final n in _fieldNames) n: TextEditingController(),
+  };
+  final Map<String, GlobalKey<FormFieldState<String>>> _k = {
+    for (final n in _fieldNames) n: GlobalKey<FormFieldState<String>>(),
+  };
+
+  bool get _isComplete =>
+      _requiredNames.every((n) => _c[n]!.text.trim().isNotEmpty);
+
+  @override
+  void dispose() {
+    for (final c in _c.values) {
+      c.dispose();
+    }
+    super.dispose();
+  }
+
+  //  VALIDATOR 
+  String? _req(String? v, String label) {
+    if (v == null || v.trim().isEmpty) return '$label wajib diisi';
+    return null;
+  }
+
+  String? _year(String? v, String label) {
+    final r = _req(v, label);
+    if (r != null) return r;
+    final t = v!.trim();
+    final y = int.tryParse(t);
+    if (y == null || t.length != 4 || y < 1980 || y > 2100) {
+      return 'Tahun tidak valid';
+    }
+    return null;
+  }
+
+  String? _email(String? v) {
+    final r = _req(v, 'Email');
+    if (r != null) return r;
+    if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(v!.trim())) {
+      return 'Format email tidak valid';
+    }
+    return null;
+  }
+
+  String? _hp(String? v) {
+    final r = _req(v, 'Nomor Hp');
+    if (r != null) return r;
+    if (v!.trim().length < 9 || v.trim().length > 15) {
+      return 'Nomor Hp harus 9-15 digit';
+    }
+    return null;
+  }
+
+  void _showSnack(String text) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(text),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+  }
+
+  void _submit() {
+    FocusScope.of(context).unfocus();
+
+    final valid = _formKey.currentState?.validate() ?? false;
+    if (!valid) {
+      setState(() => _autovalidate = AutovalidateMode.onUserInteraction);
+      _showSnack('Lengkapi data yang masih kosong atau salah');
+
+      // scroll ke field pertama yang error
+      for (final n in _fieldNames) {
+        final state = _k[n]!.currentState;
+        final ctx = _k[n]!.currentContext;
+        if (state != null && state.hasError && ctx != null) {
+          Scrollable.ensureVisible(
+            ctx,
+            alignment: 0.25,
+            duration: const Duration(milliseconds: 300),
+          );
+          break;
+        }
+      }
+      return;
+    }
+
+    // Data masih dummy. Nanti ganti dengan pemanggilan API (POST) di sini.
+    // Halaman Tracer diganti halaman Terima Kasih, dan hasil isian dikirim
+    // ke Dashboard. Saat Terima Kasih ditutup, user langsung kembali ke Dashboard.
+    Navigator.pushReplacement<void, TracerResult>(
+      context,
+      MaterialPageRoute<void>(builder: (_) => const TerimaKasihScreen()),
+      result: TracerResult(
+        status: _c['status']!.text.trim(),
+        namaUniversitas: _c['universitas']!.text.trim(),
+        programStudi: _c['prodi']!.text.trim(),
+        perusahaan: _c['perusahaan']!.text.trim(),
+        posisi: _c['posisi']!.text.trim(),
+      ),
+    );
+  }
+
+  void _onNavTap(int i) {
+    if (i == 1) return; // sedang di Tracer
+    if (i == 0) {
+      Navigator.maybePop(context); // kembali ke Beranda
+      return;
+    }
+    if (i == 3) {
+      Navigator.pop(context, 3); // kembali ke Dashboard, lalu buka Profil
+      return;
+    }
+    _showSnack('Halaman Riwayat belum tersedia');
+  }
+
+  //  PEMBANTU FIELD 
+  Widget _f(
+    String name,
+    String label,
+    String hint, {
+    bool required = true,
+    String? Function(String?)? validator,
+    TextInputType keyboard = TextInputType.text,
+    TextCapitalization cap = TextCapitalization.sentences,
+    List<TextInputFormatter>? formatters,
+  }) {
+    return _Field(
+      label: label,
+      hint: hint,
+      controller: _c[name]!,
+      fieldKey: _k[name]!,
+      autovalidate: _autovalidate,
+      keyboardType: keyboard,
+      capitalization: cap,
+      inputFormatters: formatters,
+      validator: validator ?? (required ? (v) => _req(v, label) : null),
+    );
+  }
+
+  Widget _gap() => const SizedBox(height: 18);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        bottom: false,
+        child: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
+                padding: const EdgeInsets.fromLTRB(18, 16, 18, 24),
+                child: Form(
+                  key: _formKey,
+                  onChanged: () => setState(() {}),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // ===== HEADER =====
+                      Padding(
+                        padding: const EdgeInsets.only(left: 4),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            InkWell(
+                              onTap: () => Navigator.maybePop(context),
+                              child: const Icon(Icons.arrow_back,
+                                  size: 20, color: _kBlueDark),
+                            ),
+                            const SizedBox(height: 16),
+                            const Text(
+                              'Tracer Study',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                                color: _kBlueDark,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            const Text(
+                              'Yuk isi data diri kamu!',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: _kSubText,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 26),
+
+                      // ===== DATA DIRI ALUMNI =====
+                      const _Heading('Data Diri Alumni'),
+                      _SectionCard(children: [
+                        _f('nama', 'Nama Lengkap',
+                            'Contoh: Suendah Inarti Pratama',
+                            cap: TextCapitalization.words),
+                        _gap(),
+                        _f('ttl', 'Tempat, Tanggal lahir',
+                            'Contoh: 0097125163'),
+                        _gap(),
+                        _f('lulus', 'Tahun Lulus', '2023',
+                            keyboard: TextInputType.number,
+                            validator: (v) => _year(v, 'Tahun Lulus'),
+                            formatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                              LengthLimitingTextInputFormatter(4),
+                            ]),
+                        _gap(),
+                        _f('jurusan', 'Jurusan', 'Rekayasa Perangkat Lunak',
+                            cap: TextCapitalization.words),
+                      ]),
+                      const SizedBox(height: 24),
+
+                      // ===== KONTAK & ALAMAT =====
+                      const _Heading('Kontak & Alamat'),
+                      _SectionCard(children: [
+                        _f('email', 'Email', 'Contoh: endah123@gmail.com',
+                            keyboard: TextInputType.emailAddress,
+                            cap: TextCapitalization.none,
+                            validator: _email),
+                        _gap(),
+                        _f('hp', 'Nomor Hp', 'Contoh: 08238237257',
+                            keyboard: TextInputType.phone,
+                            validator: _hp,
+                            formatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                              LengthLimitingTextInputFormatter(15),
+                            ]),
+                        _gap(),
+                        _f('alamat', 'Alamat Lengkap',
+                            'Contoh: Jl Melati gang V',
+                            cap: TextCapitalization.words),
+                      ]),
+                      const SizedBox(height: 24),
+
+                      // ===== STATUS SAAT INI =====
+                      const _Heading('Status Saat Ini'),
+                      _SectionCard(children: [
+                        _f('status', 'Status',
+                            'Contoh: Bekerja/Wirausaha/kuliah/lainnya'),
+                      ]),
+                      const SizedBox(height: 24),
+
+                      // ===== DATA PENDIDIKAN =====
+                      const _Heading('Data Pendidikan'),
+                      _SectionCard(children: [
+                        _f('pendidikan', 'Pendidikan Terakhir',
+                            'Contoh: Perguruan tinggi'),
+                        _gap(),
+                        _f('universitas', 'Nama Universitas',
+                            'Contoh: Universitas Negeri Malang',
+                            cap: TextCapitalization.words),
+                        _gap(),
+                        _f('prodi', 'Program Studi',
+                            'Contoh: Teknik Informatika',
+                            cap: TextCapitalization.words),
+                        _gap(),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              flex: 33,
+                              child: _f('masuk', 'Tahun Masuk', '2023',
+                                  keyboard: TextInputType.number,
+                                  validator: (v) => _year(v, 'Tahun Masuk'),
+                                  formatters: [
+                                    FilteringTextInputFormatter.digitsOnly,
+                                    LengthLimitingTextInputFormatter(4),
+                                  ]),
+                            ),
+                            const Expanded(flex: 26, child: SizedBox()),
+                            Expanded(
+                              flex: 41,
+                              child: _f('statusPendidikan',
+                                  'Status Pendidikan', 'Sudah Lulus'),
+                            ),
+                          ],
+                        ),
+                      ]),
+                      const SizedBox(height: 24),
+
+                      // ===== DATA PEKERJAAN (opsional) =====
+                      const _Heading('Data Pekerjaan'),
+                      _SectionCard(children: [
+                        _f('statusKerja', 'Status saat ini',
+                            'Contoh: Sudah Bekerja',
+                            required: false),
+                        _gap(),
+                        _f('perusahaan', 'Nama Perusahaan',
+                            'Contoh: PT Malang',
+                            required: false, cap: TextCapitalization.words),
+                        _gap(),
+                        _f('posisi', 'Posisi/Jabatan',
+                            'Contoh: Web developer',
+                            required: false, cap: TextCapitalization.words),
+                        _gap(),
+                        _f('bidang', 'Bidang Pekerjaan', 'Contoh: IT',
+                            required: false),
+                        _gap(),
+                        _f('lokasi', 'Lokasi Perusahaan',
+                            'Contoh: Jl Melati gang V',
+                            required: false, cap: TextCapitalization.words),
+                      ]),
+                      const SizedBox(height: 36),
+
+                      // ===== TOMBOL SELESAI =====
+                      SizedBox(
+                        width: double.infinity,
+                        height: 42,
+                        child: ElevatedButton(
+                          onPressed: _submit,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor:
+                                _isComplete ? _kBlueDark : _kButtonOff,
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          child: const Text(
+                            'Selesai',
+                            style: TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            _BottomNav(selectedIndex: 1, onTap: _onNavTap),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+//  WIDGET PEMBANTU 
+
+class _Heading extends StatelessWidget {
+  final String text;
+  const _Heading(this.text);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 4, bottom: 14),
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w700,
+          color: _kBlueDark,
+        ),
+      ),
+    );
+  }
+}
+
+class _SectionCard extends StatelessWidget {
+  final List<Widget> children;
+  const _SectionCard({required this.children});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(12, 14, 12, 14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: _kBorder),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x0F000000),
+            blurRadius: 6,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: children,
+      ),
+    );
+  }
+}
+
+class _Field extends StatelessWidget {
+  final String label;
+  final String hint;
+  final TextEditingController controller;
+  final GlobalKey<FormFieldState<String>> fieldKey;
+  final AutovalidateMode autovalidate;
+  final String? Function(String?)? validator;
+  final TextInputType keyboardType;
+  final TextCapitalization capitalization;
+  final List<TextInputFormatter>? inputFormatters;
+
+  const _Field({
+    required this.label,
+    required this.hint,
+    required this.controller,
+    required this.fieldKey,
+    required this.autovalidate,
+    required this.validator,
+    required this.keyboardType,
+    required this.capitalization,
+    required this.inputFormatters,
+  });
+
+  OutlineInputBorder _border(Color color) => OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: BorderSide(color: color, width: 1),
+      );
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 12.5,
+            color: _kLabel,
+            height: 1.2,
+          ),
+        ),
+        const SizedBox(height: 12),
+        TextFormField(
+          key: fieldKey,
+          controller: controller,
+          validator: validator,
+          autovalidateMode: autovalidate,
+          keyboardType: keyboardType,
+          textCapitalization: capitalization,
+          inputFormatters: inputFormatters,
+          style: const TextStyle(fontSize: 12, color: Colors.black87),
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: const TextStyle(fontSize: 10, color: _kHint),
+            isDense: true,
+            filled: true,
+            fillColor: Colors.white,
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+            border: _border(_kInputBorder),
+            enabledBorder: _border(_kInputBorder),
+            focusedBorder: _border(_kBlueDark),
+            errorBorder: _border(const Color(0xFFD9534F)),
+            focusedErrorBorder: _border(const Color(0xFFD9534F)),
+            errorStyle: const TextStyle(fontSize: 10),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _BottomNav extends StatelessWidget {
+  final int selectedIndex;
+  final ValueChanged<int> onTap;
+
+  const _BottomNav({required this.selectedIndex, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final items = [
+      (Icons.home_outlined, 'Beranda'),
+      (Icons.description_outlined, 'Tracer'),
+      (Icons.history, 'Riwayat'),
+      (Icons.person_outline, 'Profil'),
+    ];
+
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFFF2F6F4),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
+        border: Border.all(color: const Color(0xFFD5DBD8)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: SizedBox(
+          height: 72,
+          child: Row(
+            children: List.generate(items.length, (i) {
+              final selected = i == selectedIndex;
+              final color = selected
+                  ? const Color(0xFF1B2B45)
+                  : const Color(0xFF4F6F95);
+              return Expanded(
+                child: InkWell(
+                  onTap: () => onTap(i),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(items[i].$1, size: 34, color: color),
+                      const SizedBox(height: 2),
+                      Text(
+                        items[i].$2,
+                        style: TextStyle(
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w700,
+                          color: color,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }),
+          ),
+        ),
+      ),
+    );
+  }
+}

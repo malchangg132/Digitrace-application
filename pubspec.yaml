@@ -57,6 +57,7 @@ flutter:
   assets:
     - assets/images/logo_digitrace.png
     - assets/images/logo2_digitrace.png
+    - assets/images/terimakasih.png
 
   # To add assets to your application, add an assets section, like this:
   # assets:

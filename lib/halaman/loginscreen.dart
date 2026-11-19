@@ -1,5 +1,5 @@
-
 import 'package:flutter/material.dart';
+import 'package:digitrace/admin/dash_admin.dart';
 
 class Loginscreen extends StatefulWidget {
   const Loginscreen({super.key});
@@ -105,15 +105,14 @@ class _LoginscreenState extends State<Loginscreen> {
               SizedBox(
                 height: 45,
                 child: ElevatedButton(
-                  onPressed: () {},
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF8EACCD),
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                  ),
+                  onPressed: () {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const DashAdmin(),
+                      ),
+                    );
+                  },
                   child: const Text(
                     'Masuk',
                     style: TextStyle(

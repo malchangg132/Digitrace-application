@@ -1,16 +1,8 @@
 import 'package:flutter/material.dart';
 
-// WARNA & ASSET 
-const Color _kBlueDark = Color(0xFF264D7A);
-const Color _kButton = Color(0xFFD3E0F7);
-
-
-const String _kGambar = 'assets/images/terimakasih.png';
-
 class TerimaKasihScreen extends StatelessWidget {
   const TerimaKasihScreen({super.key});
 
-  
   void _kembali(BuildContext context) => Navigator.pop(context);
 
   @override
@@ -20,7 +12,7 @@ class TerimaKasihScreen extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            //  PANAH KEMBALI 
+           
             Align(
               alignment: Alignment.centerLeft,
               child: Padding(
@@ -30,13 +22,17 @@ class TerimaKasihScreen extends StatelessWidget {
                   onTap: () => _kembali(context),
                   child: const Padding(
                     padding: EdgeInsets.all(8),
-                    child: Icon(Icons.arrow_back, size: 20, color: _kBlueDark),
+                    child: Icon(
+                      Icons.arrow_back,
+                      size: 20,
+                      color: Color(0xFF244B73),
+                    ),
                   ),
                 ),
               ),
             ),
 
-            //  ISI TENGAH 
+           
             Expanded(
               child: Align(
                 alignment: const Alignment(0, -0.4),
@@ -47,13 +43,8 @@ class TerimaKasihScreen extends StatelessWidget {
                       width: 130,
                       height: 165,
                       child: Image.asset(
-                        _kGambar,
+                        'assets/images/terimakasih.png',
                         fit: BoxFit.contain,
-                        errorBuilder: (_, __, ___) => const Icon(
-                          Icons.check_circle,
-                          size: 90,
-                          color: Color(0xFFBFD8B8),
-                        ),
                       ),
                     ),
                     const SizedBox(height: 36),
@@ -63,7 +54,7 @@ class TerimaKasihScreen extends StatelessWidget {
                         fontSize: 26,
                         fontWeight: FontWeight.w700,
                         letterSpacing: 1,
-                        color: _kBlueDark,
+                        color: Color(0xFF244B73),
                       ),
                     ),
                     const SizedBox(height: 30),
@@ -74,7 +65,7 @@ class TerimaKasihScreen extends StatelessWidget {
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
                         height: 1.5,
-                        color: _kBlueDark,
+                        color: Color(0xFF244B73),
                       ),
                     ),
                   ],
@@ -82,7 +73,7 @@ class TerimaKasihScreen extends StatelessWidget {
               ),
             ),
 
-            //  TOMBOL KEMBALI KE BERANDA 
+            // TOMBOL KEMBALI KE BERANDA
             Padding(
               padding: const EdgeInsets.fromLTRB(26, 0, 26, 12),
               child: SizedBox(
@@ -91,8 +82,8 @@ class TerimaKasihScreen extends StatelessWidget {
                 child: ElevatedButton(
                   onPressed: () => _kembali(context),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: _kButton,
-                    foregroundColor: _kBlueDark,
+                    backgroundColor: const Color(0xFFD3E0F7),
+                    foregroundColor: const Color(0xFF244B73),
                     elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),

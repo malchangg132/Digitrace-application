@@ -3,12 +3,6 @@ import 'package:digitrace/halaman/loginscreen.dart';
 import 'editprofil.dart';
 import 'tentangaplikasi.dart';
 
-// WARNA
-const Color _kBlueDark = Color(0xFF264D7A);
-const Color _kMuted = Color(0xFF7D8BA3);
-const Color _kDivider = Color(0xFFDCE1EA);
-const Color _kLogout = Color(0xFF7F0A0A);
-
 class ProfilScreen extends StatefulWidget {
   const ProfilScreen({super.key});
 
@@ -17,7 +11,6 @@ class ProfilScreen extends StatefulWidget {
 }
 
 class _ProfilScreenState extends State<ProfilScreen> {
- 
   ProfilData _data = const ProfilData(
     nama: 'Nadya',
     ttl: 'Malang, 26 januari 2009',
@@ -51,7 +44,7 @@ class _ProfilScreenState extends State<ProfilScreen> {
   void _onNavTap(int i) {
     switch (i) {
       case 0: // Beranda -> kembali ke Dashboard
-        Navigator.maybePop(context);
+        Navigator.pop(context);
         break;
       case 1: // Tracer -> kembali ke Dashboard, lalu Dashboard membuka Tracer
         Navigator.pop(context, 1);
@@ -102,7 +95,10 @@ class _ProfilScreenState extends State<ProfilScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Keluar', style: TextStyle(color: _kLogout)),
+            child: const Text(
+              'Keluar',
+              style: TextStyle(color: Color(0xFF7F0A0A)),
+            ),
           ),
         ],
       ),
@@ -139,11 +135,14 @@ class _ProfilScreenState extends State<ProfilScreen> {
                       padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
                       child: InkWell(
                         borderRadius: BorderRadius.circular(20),
-                        onTap: () => Navigator.maybePop(context),
+                        onTap: () => Navigator.pop(context),
                         child: const Padding(
                           padding: EdgeInsets.all(8),
-                          child: Icon(Icons.arrow_back,
-                              size: 20, color: _kBlueDark),
+                          child: Icon(
+                            Icons.arrow_back,
+                            size: 20,
+                            color: Color(0xFF244B73),
+                          ),
                         ),
                       ),
                     ),
@@ -157,7 +156,7 @@ class _ProfilScreenState extends State<ProfilScreen> {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
-                          color: _kBlueDark,
+                          color: Color(0xFF244B73),
                         ),
                       ),
                     ),
@@ -180,7 +179,7 @@ class _ProfilScreenState extends State<ProfilScreen> {
                                 const Divider(
                                   height: 1,
                                   thickness: 1,
-                                  color: _kDivider,
+                                  color: Color(0xFFDCE1EA),
                                 ),
                               _DataRow(
                                 label: rows[i].$1,
@@ -212,14 +211,20 @@ class _ProfilScreenState extends State<ProfilScreen> {
                               onTap: _openEdit,
                             ),
                             const Divider(
-                                height: 1, thickness: 1, color: _kDivider),
+                              height: 1,
+                              thickness: 1,
+                              color: Color(0xFFDCE1EA),
+                            ),
                             _MenuRow(
                               icon: Icons.info_outline,
                               title: 'Tentang aplikasi',
                               onTap: _showAbout,
                             ),
                             const Divider(
-                                height: 1, thickness: 1, color: _kDivider),
+                              height: 1,
+                              thickness: 1,
+                              color: Color(0xFFDCE1EA),
+                            ),
                           ],
                         ),
                       ),
@@ -254,7 +259,7 @@ class _ProfilScreenState extends State<ProfilScreen> {
                               ),
                             ),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: _kLogout,
+                              backgroundColor: const Color(0xFF7F0A0A),
                               foregroundColor: Colors.white,
                               elevation: 0,
                               shape: RoundedRectangleBorder(
@@ -316,14 +321,14 @@ class _CardHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, size: 22, color: _kBlueDark),
+        Icon(icon, size: 22, color: const Color(0xFF244B73)),
         const SizedBox(width: 10),
         Text(
           text,
           style: const TextStyle(
             fontSize: 14.5,
             fontWeight: FontWeight.w700,
-            color: _kBlueDark,
+            color: Color(0xFF244B73),
           ),
         ),
       ],
@@ -350,7 +355,10 @@ class _DataRow extends StatelessWidget {
               alignment: Alignment.centerLeft,
               child: Text(
                 label,
-                style: const TextStyle(fontSize: 12, color: _kBlueDark),
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Color(0xFF244B73),
+                ),
               ),
             ),
           ),
@@ -364,7 +372,7 @@ class _DataRow extends StatelessWidget {
                 style: const TextStyle(
                   fontSize: 11.5,
                   fontWeight: FontWeight.w700,
-                  color: _kBlueDark,
+                  color: Color(0xFF244B73),
                 ),
               ),
             ),
@@ -396,7 +404,7 @@ class _MenuRow extends StatelessWidget {
         padding: EdgeInsets.symmetric(vertical: subtitle != null ? 7 : 9),
         child: Row(
           children: [
-            Icon(icon, size: 18, color: _kBlueDark),
+            Icon(icon, size: 18, color: const Color(0xFF244B73)),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -407,20 +415,27 @@ class _MenuRow extends StatelessWidget {
                     style: const TextStyle(
                       fontSize: 12.5,
                       fontWeight: FontWeight.w500,
-                      color: _kBlueDark,
+                      color: Color(0xFF244B73),
                     ),
                   ),
                   if (subtitle != null) ...[
                     const SizedBox(height: 1),
                     Text(
                       subtitle!,
-                      style: const TextStyle(fontSize: 8.5, color: _kMuted),
+                      style: const TextStyle(
+                        fontSize: 8.5,
+                        color: Color(0xFF7D8BA3),
+                      ),
                     ),
                   ],
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right, size: 22, color: _kBlueDark),
+            const Icon(
+              Icons.chevron_right,
+              size: 22,
+              color: Color(0xFF244B73),
+            ),
           ],
         ),
       ),

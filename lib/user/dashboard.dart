@@ -3,13 +3,6 @@ import 'tracer.dart';
 import 'profil.dart';
 import 'notifikasi.dart';
 
-// WARNA
-const Color _kBlueDark = Color(0xFF264D7A);
-const Color _kBlueSoft = Color(0xFFE6EDFB);
-const Color _kMuted = Color(0xFF7D8BA3);
-const Color _kSubText = Color(0xFF3F5E86);
-const Color _kIconBg = Color(0xFFB4C3DC);
-
 class _NotifItem {
   final IconData icon;
   final String title;
@@ -215,7 +208,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
-                    color: _kBlueDark,
+                    color: Color(0xFF244B73),
                     height: 1.2,
                   ),
                 ),
@@ -230,7 +223,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.school, size: 22, color: _kBlueDark),
+                      const Icon(
+                        Icons.school,
+                        size: 22,
+                        color: Color(0xFF244B73),
+                      ),
                       const SizedBox(width: 10),
                       Column(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -238,7 +235,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         children: [
                           const Text(
                             'Status saat ini',
-                            style: TextStyle(fontSize: 9, color: _kMuted),
+                            style: TextStyle(
+                              fontSize: 9,
+                              color: Color(0xFF7D8BA3),
+                            ),
                           ),
                           const SizedBox(height: 2),
                           Text(
@@ -246,7 +246,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             style: const TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w700,
-                              color: _kBlueDark,
+                              color: Color(0xFF244B73),
                             ),
                           ),
                         ],
@@ -265,11 +265,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
               width: 130,
               height: 118,
               fit: BoxFit.contain,
-              errorBuilder: (_, __, ___) => const SizedBox(
-                width: 130,
-                height: 118,
-                child: Icon(Icons.school, size: 60, color: _kIconBg),
-              ),
             ),
           ),
           Positioned(
@@ -282,7 +277,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 color: const Color(0xFFDCE6F7),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Icon(Icons.school, size: 16, color: _kBlueDark),
+              child: const Icon(
+                Icons.school,
+                size: 16,
+                color: Color(0xFF244B73),
+              ),
             ),
           ),
         ],
@@ -293,7 +292,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // ===== PERJALANAN ALUMNI =====
   Widget _buildProgress() {
     return _Card(
-      color: _kBlueSoft,
+      color: const Color(0xFFE6EDFB),
       padding: const EdgeInsets.all(12),
       child: Column(
         children: [
@@ -307,7 +306,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
-                    color: _kBlueDark,
+                    color: Color(0xFF244B73),
                   ),
                 ),
               ),
@@ -316,7 +315,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 style: const TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
-                  color: _kBlueDark,
+                  color: Color(0xFF244B73),
                 ),
               ),
             ],
@@ -332,7 +331,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 value: value,
                 minHeight: 14,
                 backgroundColor: const Color(0xFFD0DAEC),
-                valueColor: const AlwaysStoppedAnimation<Color>(_kBlueDark),
+                valueColor: const AlwaysStoppedAnimation<Color>(
+                  Color(0xFF244B73),
+                ),
               ),
             ),
           ),
@@ -359,7 +360,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           const SizedBox(width: 36),
           Expanded(
             child: _InfoCard(
-              color: _kBlueSoft,
+              color: const Color(0xFFE6EDFB),
               iconBg: const Color(0xFFD3DEF2),
               icon: Icons.work_outline,
               title: 'Karier',
@@ -392,20 +393,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
-                  color: _kBlueDark,
+                  color: Color(0xFF244B73),
                 ),
               ),
               const SizedBox(height: 2),
               const Text(
                 'Data terakhir diperbarui:',
-                style: TextStyle(fontSize: 9, color: _kSubText),
+                style: TextStyle(fontSize: 9, color: Color(0xFF3F5E86)),
               ),
               Text(
                 _terakhirDiperbarui,
                 style: const TextStyle(
                   fontSize: 9.5,
                   fontWeight: FontWeight.w700,
-                  color: _kBlueDark,
+                  color: Color(0xFF244B73),
                 ),
               ),
             ],
@@ -442,8 +443,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 14),
               child: const Row(
                 children: [
-                  Icon(Icons.notifications_none,
-                      size: 20, color: _kBlueDark),
+                  Icon(
+                    Icons.notifications_none,
+                    size: 20,
+                    color: Color(0xFF244B73),
+                  ),
                   SizedBox(width: 10),
                   Expanded(
                     child: Text(
@@ -451,11 +455,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
-                        color: _kBlueDark,
+                        color: Color(0xFF244B73),
                       ),
                     ),
                   ),
-                  Icon(Icons.chevron_right, size: 22, color: _kBlueDark),
+                  Icon(
+                    Icons.chevron_right,
+                    size: 22,
+                    color: Color(0xFF244B73),
+                  ),
                 ],
               ),
             ),
@@ -479,7 +487,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // ===== BANNER AJAKAN =====
   Widget _buildBanner() {
     return _Card(
-      color: _kBlueSoft,
+      color: const Color(0xFFE6EDFB),
       padding: const EdgeInsets.all(12),
       onTap: () => _onNavTap(1),
       child: Row(
@@ -502,13 +510,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
-                    color: _kBlueDark,
+                    color: Color(0xFF244B73),
                   ),
                 ),
                 SizedBox(height: 2),
                 Text(
                   'Bantu kami memantau perkembangan alumni dengan mengisi tracer study',
-                  style: TextStyle(fontSize: 9.5, color: _kSubText),
+                  style: TextStyle(fontSize: 9.5, color: Color(0xFF3F5E86)),
                 ),
               ],
             ),
@@ -564,7 +572,7 @@ class _IconBox extends StatelessWidget {
         color: bg,
         borderRadius: BorderRadius.circular(7),
       ),
-      child: Icon(icon, size: size * 0.6, color: _kBlueDark),
+      child: Icon(icon, size: size * 0.6, color: const Color(0xFF244B73)),
     );
   }
 }
@@ -599,7 +607,7 @@ class _InfoCard extends StatelessWidget {
             style: const TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w700,
-              color: _kBlueDark,
+              color: Color(0xFF244B73),
             ),
           ),
           const SizedBox(height: 4),
@@ -611,7 +619,7 @@ class _InfoCard extends StatelessWidget {
                 style: const TextStyle(
                   fontSize: 9.5,
                   fontWeight: FontWeight.w500,
-                  color: _kSubText,
+                  color: Color(0xFF3F5E86),
                 ),
               ),
             ),
@@ -640,9 +648,9 @@ class _NotifTile extends StatelessWidget {
               height: 34,
               decoration: const BoxDecoration(
                 shape: BoxShape.circle,
-                color: _kIconBg,
+                color: Color(0xFFB4C3DC),
               ),
-              child: Icon(item.icon, size: 18, color: _kBlueDark),
+              child: Icon(item.icon, size: 18, color: const Color(0xFF244B73)),
             ),
             const SizedBox(width: 10),
             Expanded(
@@ -654,13 +662,16 @@ class _NotifTile extends StatelessWidget {
                     style: const TextStyle(
                       fontSize: 10.5,
                       fontWeight: FontWeight.w700,
-                      color: _kBlueDark,
+                      color: Color(0xFF244B73),
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     item.desc,
-                    style: const TextStyle(fontSize: 9, color: _kSubText),
+                    style: const TextStyle(
+                      fontSize: 9,
+                      color: Color(0xFF3F5E86),
+                    ),
                   ),
                 ],
               ),

@@ -1,13 +1,5 @@
 import 'package:flutter/material.dart';
 
-// WARNA
-const Color _kBlueDark = Color(0xFF264D7A);
-const Color _kMuted = Color(0xFF9AA8BD);
-const Color _kCircle = Color(0xFFD3DFF5);
-const Color _kCard = Color(0xFFDDE7F9);
-const Color _kCardBorder = Color(0xFF8A93A3);
-
-
 class RiwayatData {
   // Pendidikan
   final String pendidikanTerakhir;
@@ -43,7 +35,7 @@ class RiwayatScreen extends StatelessWidget {
   void _onNavTap(BuildContext context, int i) {
     switch (i) {
       case 0: // Beranda -> kembali ke Dashboard
-        Navigator.maybePop(context);
+        Navigator.pop(context);
         break;
       case 1: // Tracer
       case 3: // Profil
@@ -74,11 +66,14 @@ class RiwayatScreen extends StatelessWidget {
                       padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
                       child: InkWell(
                         borderRadius: BorderRadius.circular(20),
-                        onTap: () => Navigator.maybePop(context),
+                        onTap: () => Navigator.pop(context),
                         child: const Padding(
                           padding: EdgeInsets.all(8),
-                          child: Icon(Icons.arrow_back,
-                              size: 20, color: _kBlueDark),
+                          child: Icon(
+                            Icons.arrow_back,
+                            size: 20,
+                            color: Color(0xFF244B73),
+                          ),
                         ),
                       ),
                     ),
@@ -92,7 +87,7 @@ class RiwayatScreen extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.w700,
-                          color: _kBlueDark,
+                          color: Color(0xFF244B73),
                         ),
                       ),
                     ),
@@ -101,7 +96,10 @@ class RiwayatScreen extends StatelessWidget {
                       padding: EdgeInsets.only(left: 24),
                       child: Text(
                         'Perjalanan data alumni',
-                        style: TextStyle(fontSize: 10.5, color: _kMuted),
+                        style: TextStyle(
+                          fontSize: 10.5,
+                          color: Color(0xFF9AA8BD),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 40),
@@ -184,9 +182,9 @@ class _SectionTitle extends StatelessWidget {
           height: 46,
           decoration: const BoxDecoration(
             shape: BoxShape.circle,
-            color: _kCircle,
+            color: Color(0xFFD3DFF5),
           ),
-          child: Icon(icon, size: 24, color: _kBlueDark),
+          child: Icon(icon, size: 24, color: const Color(0xFF244B73)),
         ),
         const SizedBox(width: 14),
         Text(
@@ -194,7 +192,7 @@ class _SectionTitle extends StatelessWidget {
           style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w700,
-            color: _kBlueDark,
+            color: Color(0xFF244B73),
           ),
         ),
       ],
@@ -214,9 +212,9 @@ class _InfoCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(11, 10, 11, 12),
       decoration: BoxDecoration(
-        color: _kCard,
+        color: const Color(0xFFDDE7F9),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: _kCardBorder, width: 1),
+        border: Border.all(color: const Color(0xFF8A93A3), width: 1),
         boxShadow: const [
           BoxShadow(
             color: Color(0x26000000),
@@ -228,7 +226,7 @@ class _InfoCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 22, color: _kBlueDark),
+          Icon(icon, size: 22, color: const Color(0xFF244B73)),
           const SizedBox(height: 4),
           for (final r in rows)
             SizedBox(
@@ -239,7 +237,10 @@ class _InfoCard extends StatelessWidget {
                     flex: 54,
                     child: Text(
                       r.$1,
-                      style: const TextStyle(fontSize: 10, color: _kBlueDark),
+                      style: const TextStyle(
+                        fontSize: 10,
+                        color: Color(0xFF244B73),
+                      ),
                     ),
                   ),
                   Expanded(
@@ -252,7 +253,7 @@ class _InfoCard extends StatelessWidget {
                         style: const TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.w700,
-                          color: _kBlueDark,
+                          color: Color(0xFF244B73),
                         ),
                       ),
                     ),

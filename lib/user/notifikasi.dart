@@ -1,24 +1,5 @@
 import 'package:flutter/material.dart';
 
-// WARNA
-const Color _kBlueDark = Color(0xFF264D7A);
-const Color _kMuted = Color(0xFF8793A8);
-
-
-const List<Color> _kCardColors = [
-  Color(0xFFE6EDFB),
-  Color(0xFFFEF9DE),
-  Color(0xFFE9F0E5),
-];
-const List<Color> _kCircleColors = [
-  Color(0xFFD3DFF5),
-  Color(0xFFFFF6CF),
-  Color(0xFFCFE0CA),
-];
-
-
-const int _kTabAktif = 0;
-
 class _Notif {
   final int id;
   final String title;
@@ -41,7 +22,6 @@ class NotifikasiScreen extends StatefulWidget {
 }
 
 class _NotifikasiScreenState extends State<NotifikasiScreen> {
-
   final List<_Notif> _items = [
     const _Notif(
       id: 1,
@@ -102,7 +82,7 @@ class _NotifikasiScreenState extends State<NotifikasiScreen> {
   void _onNavTap(int i) {
     switch (i) {
       case 0: // Beranda -> kembali ke Dashboard
-        Navigator.maybePop(context);
+        Navigator.pop(context);
         break;
       case 1: // Tracer -> kembali ke Dashboard, lalu Dashboard membuka Tracer
       case 3: // Profil -> kembali ke Dashboard, lalu Dashboard membuka Profil
@@ -133,11 +113,14 @@ class _NotifikasiScreenState extends State<NotifikasiScreen> {
                       padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
                       child: InkWell(
                         borderRadius: BorderRadius.circular(20),
-                        onTap: () => Navigator.maybePop(context),
+                        onTap: () => Navigator.pop(context),
                         child: const Padding(
                           padding: EdgeInsets.all(8),
-                          child: Icon(Icons.arrow_back,
-                              size: 20, color: _kBlueDark),
+                          child: Icon(
+                            Icons.arrow_back,
+                            size: 20,
+                            color: Color(0xFF244B73),
+                          ),
                         ),
                       ),
                     ),
@@ -151,7 +134,7 @@ class _NotifikasiScreenState extends State<NotifikasiScreen> {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
-                          color: _kBlueDark,
+                          color: Color(0xFF244B73),
                         ),
                       ),
                     ),
@@ -164,15 +147,17 @@ class _NotifikasiScreenState extends State<NotifikasiScreen> {
                         child: Center(
                           child: Text(
                             'Belum ada notifikasi',
-                            style: TextStyle(fontSize: 13, color: _kMuted),
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Color(0xFF8793A8),
+                            ),
                           ),
                         ),
                       )
                     else
                       for (int i = 0; i < _items.length; i++)
                         Padding(
-                          padding:
-                              const EdgeInsets.fromLTRB(24, 0, 24, 22),
+                          padding: const EdgeInsets.fromLTRB(24, 0, 24, 22),
                           child: Dismissible(
                             key: ValueKey(_items[i].id),
                             onDismissed: (_) => _hapus(i),
@@ -192,7 +177,7 @@ class _NotifikasiScreenState extends State<NotifikasiScreen> {
                 ),
               ),
             ),
-            _BottomNav(selectedIndex: _kTabAktif, onTap: _onNavTap),
+            _BottomNav(selectedIndex: 0, onTap: _onNavTap),
           ],
         ),
       ),
@@ -210,11 +195,23 @@ class _NotifCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // warna kartu & lingkaran ikon (biru, kuning, hijau)
+    final List<Color> cardColors = [
+      const Color(0xFFE6EDFB),
+      const Color(0xFFFEF9DE),
+      const Color(0xFFE9F0E5),
+    ];
+    final List<Color> circleColors = [
+      const Color(0xFFD3DFF5),
+      const Color(0xFFFFF6CF),
+      const Color(0xFFCFE0CA),
+    ];
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(10, 12, 12, 12),
       decoration: BoxDecoration(
-        color: _kCardColors[colorIndex],
+        color: cardColors[colorIndex],
         borderRadius: BorderRadius.circular(10),
       ),
       child: Row(
@@ -225,9 +222,13 @@ class _NotifCard extends StatelessWidget {
             height: 38,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: _kCircleColors[colorIndex],
+              color: circleColors[colorIndex],
             ),
-            child: const Icon(Icons.note_alt, size: 20, color: _kBlueDark),
+            child: const Icon(
+              Icons.note_alt,
+              size: 20,
+              color: Color(0xFF244B73),
+            ),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -239,7 +240,7 @@ class _NotifCard extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
-                    color: _kBlueDark,
+                    color: Color(0xFF244B73),
                   ),
                 ),
                 const SizedBox(height: 3),
@@ -248,17 +249,24 @@ class _NotifCard extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 8.5,
                     height: 1.4,
-                    color: _kMuted,
+                    color: Color(0xFF8793A8),
                   ),
                 ),
                 const SizedBox(height: 5),
                 Row(
                   children: [
-                    const Icon(Icons.access_time, size: 12, color: _kMuted),
+                    const Icon(
+                      Icons.access_time,
+                      size: 12,
+                      color: Color(0xFF8793A8),
+                    ),
                     const SizedBox(width: 4),
                     Text(
                       item.tanggal,
-                      style: const TextStyle(fontSize: 8.5, color: _kMuted),
+                      style: const TextStyle(
+                        fontSize: 8.5,
+                        color: Color(0xFF8793A8),
+                      ),
                     ),
                   ],
                 ),

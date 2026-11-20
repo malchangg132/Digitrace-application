@@ -2,16 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'terima_kasih.dart';
 
-//  WARNA 
-const Color _kBlueDark = Color(0xFF264D7A);
-const Color _kLabel = Color(0xFF2F5A8A);
-const Color _kSubText = Color(0xFF3F5E86);
-const Color _kBorder = Color(0xFFDDE2EA);
-const Color _kInputBorder = Color(0xFFE4E8EF);
-const Color _kHint = Color(0xFFB4BAC5);
-const Color _kButtonOff = Color(0xFF8DA0BD);
-
-
 class TracerResult {
   final String status;
   final String namaUniversitas;
@@ -95,7 +85,7 @@ class _TracerScreenState extends State<TracerScreen> {
     super.dispose();
   }
 
-  //  VALIDATOR 
+  //  VALIDATOR
   String? _req(String? v, String label) {
     if (v == null || v.trim().isEmpty) return '$label wajib diisi';
     return null;
@@ -185,7 +175,7 @@ class _TracerScreenState extends State<TracerScreen> {
   void _onNavTap(int i) {
     if (i == 1) return; // sedang di Tracer
     if (i == 0) {
-      Navigator.maybePop(context); // kembali ke Beranda
+      Navigator.pop(context); // kembali ke Beranda
       return;
     }
     if (i == 3) {
@@ -195,7 +185,7 @@ class _TracerScreenState extends State<TracerScreen> {
     _showSnack('Halaman Riwayat belum tersedia');
   }
 
-  //  PEMBANTU FIELD 
+  //  PEMBANTU FIELD
   Widget _f(
     String name,
     String label,
@@ -247,9 +237,12 @@ class _TracerScreenState extends State<TracerScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             InkWell(
-                              onTap: () => Navigator.maybePop(context),
-                              child: const Icon(Icons.arrow_back,
-                                  size: 20, color: _kBlueDark),
+                              onTap: () => Navigator.pop(context),
+                              child: const Icon(
+                                Icons.arrow_back,
+                                size: 20,
+                                color: Color(0xFF244B73),
+                              ),
                             ),
                             const SizedBox(height: 16),
                             const Text(
@@ -257,7 +250,7 @@ class _TracerScreenState extends State<TracerScreen> {
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w700,
-                                color: _kBlueDark,
+                                color: Color(0xFF244B73),
                               ),
                             ),
                             const SizedBox(height: 8),
@@ -265,7 +258,7 @@ class _TracerScreenState extends State<TracerScreen> {
                               'Yuk isi data diri kamu!',
                               style: TextStyle(
                                 fontSize: 13,
-                                color: _kSubText,
+                                color: Color(0xFF3F5E86),
                               ),
                             ),
                           ],
@@ -395,8 +388,9 @@ class _TracerScreenState extends State<TracerScreen> {
                         child: ElevatedButton(
                           onPressed: _submit,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor:
-                                _isComplete ? _kBlueDark : _kButtonOff,
+                            backgroundColor: _isComplete
+                                ? const Color(0xFF244B73)
+                                : const Color(0xFF8DA0BD),
                             foregroundColor: Colors.white,
                             elevation: 0,
                             shape: RoundedRectangleBorder(
@@ -425,7 +419,7 @@ class _TracerScreenState extends State<TracerScreen> {
   }
 }
 
-//  WIDGET PEMBANTU 
+//  WIDGET PEMBANTU
 
 class _Heading extends StatelessWidget {
   final String text;
@@ -440,7 +434,7 @@ class _Heading extends StatelessWidget {
         style: const TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w700,
-          color: _kBlueDark,
+          color: Color(0xFF244B73),
         ),
       ),
     );
@@ -459,7 +453,7 @@ class _SectionCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: _kBorder),
+        border: Border.all(color: const Color(0xFFDDE2EA)),
         boxShadow: const [
           BoxShadow(
             color: Color(0x0F000000),
@@ -513,7 +507,7 @@ class _Field extends StatelessWidget {
           label,
           style: const TextStyle(
             fontSize: 12.5,
-            color: _kLabel,
+            color: Color(0xFF2F5A8A),
             height: 1.2,
           ),
         ),
@@ -529,15 +523,15 @@ class _Field extends StatelessWidget {
           style: const TextStyle(fontSize: 12, color: Colors.black87),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: const TextStyle(fontSize: 10, color: _kHint),
+            hintStyle: const TextStyle(fontSize: 10, color: Color(0xFFB4BAC5)),
             isDense: true,
             filled: true,
             fillColor: Colors.white,
             contentPadding:
                 const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-            border: _border(_kInputBorder),
-            enabledBorder: _border(_kInputBorder),
-            focusedBorder: _border(_kBlueDark),
+            border: _border(const Color(0xFFE4E8EF)),
+            enabledBorder: _border(const Color(0xFFE4E8EF)),
+            focusedBorder: _border(const Color(0xFF244B73)),
             errorBorder: _border(const Color(0xFFD9534F)),
             focusedErrorBorder: _border(const Color(0xFFD9534F)),
             errorStyle: const TextStyle(fontSize: 10),

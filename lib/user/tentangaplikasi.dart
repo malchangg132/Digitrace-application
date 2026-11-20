@@ -1,14 +1,5 @@
 import 'package:flutter/material.dart';
 
-//WARNA & ASSET
-const Color _kBlueDark = Color(0xFF264D7A);
-const Color _kMuted = Color(0xFF9AA3B2);
-const Color _kChipBg = Color(0xFFD3DAE4);
-const Color _kChipText = Color(0xFF7D8BA3);
-
-const String _kLogo = 'assets/images/logo2_digitrace.png';
-const String _kVersi = '1.0.0';
-
 class TentangAplikasiScreen extends StatelessWidget {
   const TentangAplikasiScreen({super.key});
 
@@ -22,21 +13,27 @@ class TentangAplikasiScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // PANAH KEMBALI
+              // Tombol kembali
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
                 child: InkWell(
                   borderRadius: BorderRadius.circular(20),
-                  onTap: () => Navigator.maybePop(context),
+                  onTap: () {
+                    Navigator.pop(context);
+                  },
                   child: const Padding(
                     padding: EdgeInsets.all(8),
-                    child: Icon(Icons.arrow_back, size: 20, color: _kBlueDark),
+                    child: Icon(
+                      Icons.arrow_back,
+                      size: 20,
+                      color: Color(0xFF244B73),
+                    ),
                   ),
                 ),
               ),
               const SizedBox(height: 8),
 
-              // JUDUL
+              // Judul halaman
               const Padding(
                 padding: EdgeInsets.only(left: 24),
                 child: Text(
@@ -44,13 +41,13 @@ class TentangAplikasiScreen extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
-                    color: _kBlueDark,
+                    color: Color(0xFF244B73),
                   ),
                 ),
               ),
               const SizedBox(height: 42),
 
-              // LOGO + NAMA + VERSI
+              // Logo, nama, dan versi
               Center(
                 child: Column(
                   children: [
@@ -58,36 +55,34 @@ class TentangAplikasiScreen extends StatelessWidget {
                       width: 90,
                       height: 70,
                       child: Image.asset(
-                        _kLogo,
+                        'assets/images/logo2_digitrace.png',
                         fit: BoxFit.contain,
-                        errorBuilder: (_, __, ___) => const Center(
-                          child: Text(
-                            'DIGITRACE',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w800,
-                              color: _kBlueDark,
-                            ),
-                          ),
-                        ),
                       ),
                     ),
                     const SizedBox(height: 8),
                     const Text(
                       'Tracer Study Alumni',
-                      style: TextStyle(fontSize: 11, color: _kMuted),
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Color(0xFF9AA3B2),
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 9, vertical: 2),
+                        horizontal: 9,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
-                        color: _kChipBg,
+                        color: const Color(0xFFD3DAE4),
                         borderRadius: BorderRadius.circular(5),
                       ),
                       child: const Text(
-                        'Versi $_kVersi',
-                        style: TextStyle(fontSize: 9.5, color: _kChipText),
+                        'Versi 1.0.0',
+                        style: TextStyle(
+                          fontSize: 9.5,
+                          color: Color(0xFF7D8BA3),
+                        ),
                       ),
                     ),
                   ],
@@ -95,7 +90,7 @@ class TentangAplikasiScreen extends StatelessWidget {
               ),
               const SizedBox(height: 40),
 
-              // TENTANG APLIKASI
+              // Deskripsi aplikasi
               const Padding(
                 padding: EdgeInsets.only(left: 24),
                 child: Text(
@@ -103,7 +98,7 @@ class TentangAplikasiScreen extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 14.5,
                     fontWeight: FontWeight.w700,
-                    color: _kBlueDark,
+                    color: Color(0xFF244B73),
                   ),
                 ),
               ),
@@ -113,7 +108,7 @@ class TentangAplikasiScreen extends StatelessWidget {
                 child: Container(
                   width: 45,
                   height: 1.5,
-                  color: _kBlueDark,
+                  color: const Color(0xFF244B73),
                 ),
               ),
               const SizedBox(height: 8),
@@ -127,7 +122,7 @@ class TentangAplikasiScreen extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 11.5,
                     height: 2.1,
-                    color: _kBlueDark,
+                    color: Color(0xFF244B73),
                   ),
                 ),
               ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'bottombar.dart';
 import 'detail_alumni.dart';
 
 // ====== WARNA ======
@@ -249,8 +250,6 @@ class _DataAlumniScreenState extends State<DataAlumniScreen> {
                       ),
               ),
             ),
-            const SizedBox(height: 16),
-            const _BottomNav(selectedIndex: 1),
           ],
         ),
       ),
@@ -336,52 +335,6 @@ class _AlumniTile extends StatelessWidget {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _BottomNav extends StatelessWidget {
-  final int selectedIndex;
-  const _BottomNav({required this.selectedIndex});
-
-  @override
-  Widget build(BuildContext context) {
-    final items = [
-      (Icons.home_outlined, 'Beranda'),
-      (Icons.description_outlined, 'Data'),
-      (Icons.folder_open_outlined, 'Laporan'),
-      (Icons.person_outline, 'Profil'),
-    ];
-
-    return Container(
-      height: 70,
-      decoration: BoxDecoration(
-        color: const Color(0xFFF2F6F4),
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
-        border: Border.all(color: const Color(0xFFD5DBD8)),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: List.generate(items.length, (i) {
-          final selected = i == selectedIndex;
-          final color = selected ? Colors.black : const Color(0xFF3E5A78);
-          return Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(items[i].$1, size: 32, color: color),
-              const SizedBox(height: 2),
-              Text(
-                items[i].$2,
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w700,
-                  color: selected ? Colors.black : const Color(0xFF3E5A78),
-                ),
-              ),
-            ],
-          );
-        }),
       ),
     );
   }

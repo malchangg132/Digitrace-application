@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../grafik/grafikperkembangan.dart';
-import 'bottombar.dart';
 
 class DashAdmin extends StatefulWidget {
   const DashAdmin({ Key? key }) : super(key: key);
@@ -10,13 +9,9 @@ class DashAdmin extends StatefulWidget {
 }
 
 class _DashAdminState extends State<DashAdmin> {
-  //dashboard menu aktif yang dibuka
-  int _selectedIndex = 0;
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SingleChildScrollView(
+    return SingleChildScrollView(
         child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -258,15 +253,6 @@ class _DashAdminState extends State<DashAdmin> {
           ]
         ),
       ),
-     ),
-     bottomNavigationBar: Bottombar(
-      selectedIndex: _selectedIndex,
-      onTap: (index) {
-      setState(() {
-        _selectedIndex = index;
-      });
-      },
-     ),
-    );
+     );
   }
 }

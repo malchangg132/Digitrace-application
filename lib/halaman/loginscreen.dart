@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:digitrace/admin/bottombar.dart';
 import 'package:digitrace/admin/dash_admin.dart';
 
 class Loginscreen extends StatefulWidget {
@@ -109,7 +110,7 @@ class _LoginscreenState extends State<Loginscreen> {
                     Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const DashAdmin(),
+                        builder: (context) => const NavigasiAdmin(),
                       ),
                     );
                   },

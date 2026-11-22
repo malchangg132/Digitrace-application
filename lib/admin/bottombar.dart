@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'dash_admin.dart';
+import 'data_alumni.dart';
 
 class Bottombar extends StatefulWidget {
   final int selectedIndex;
@@ -46,6 +48,37 @@ class _BottombarState extends State<Bottombar> {
           label: 'Profil',
         ),
       ],
+    );
+  }
+}
+
+class NavigasiAdmin extends StatefulWidget {
+  const NavigasiAdmin({super.key});
+
+  @override
+  State<NavigasiAdmin> createState() => _NavigasiAdminState();
+}
+
+class _NavigasiAdminState extends State<NavigasiAdmin> {
+  int _selectedIndex = 0;
+  final List<Widget> _pages = [
+    DashAdmin(),
+    DataAlumniScreen(),
+    const Center(child: Text('Halaman Laporan')),
+    const Center(child: Text('Halaman Profil')),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: _pages[_selectedIndex],
+        bottomNavigationBar: Bottombar(
+          selectedIndex: _selectedIndex,
+           onTap: (index) {
+            setState(() {
+              _selectedIndex = index;
+            });
+           })
     );
   }
 }

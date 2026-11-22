@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'tracer.dart';
 import 'profil.dart';
 import 'notifikasi.dart';
+import '../services/sesi.dart'; // <-- BARU
+import '../services/tracer_service.dart'; // <-- BARU
 
 class _NotifItem {
   final IconData icon;
@@ -24,14 +26,15 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  // DATA DUMMY (nanti diganti data dari API)
-  final String _nama = 'Endah';
-  String _status = 'Mahasiswa';
-  double _progress = 0.75;
-  String _kampus = 'Universitas Malang';
-  String _prodi = 'Teknik Informatika';
+
+  // <-- BARU: nilai awal dikosongkan, diisi dari supabase lewat _muatData()
+  String _nama = '';
+  String _status = '-';
+  double _progress = 0;
+  String _kampus = '-';
+  String _prodi = '-';
   List<String> _karierLines = ['Belum Bekerja'];
-  String _terakhirDiperbarui = '25 september 2026';
+  String _terakhirDiperbarui = '-';
   final int _navIndex = 0;
 
   final List<_NotifItem> _notifs = [
@@ -61,6 +64,45 @@ class _DashboardScreenState extends State<DashboardScreen> {
     ),
   ];
 
+  // <-- BARU
+  @override
+  void initState() {
+    super.initState();
+    _muatData();
+  }
+
+  // <-- BARU: ambil data alumni yang sedang login dari supabase
+  Future<void> _muatData() async {
+    final akun = Sesi.akun;
+    if (akun == null) return;
+
+    try {
+      final tracer = await TracerService().ambil(akun.id);
+      if (!mounted) return;
+      setState(() {
+        _nama = akun.nama;
+        if (tracer != null) {
+          _status = _capitalize(tracer.statusAktif ?? '-');
+          _kampus = tracer.namaUniversitas ?? '-';
+          _prodi = tracer.programStudy ?? '-';
+          _karierLines = (tracer.namaPerusahaan ?? '').isNotEmpty
+              ? [
+                  tracer.namaPerusahaan!,
+                  if ((tracer.posisiJabatan ?? '').isNotEmpty)
+                    tracer.posisiJabatan!,
+                ]
+              : ['Belum Bekerja'];
+          _progress = 1.0;
+        } else {
+          // belum pernah isi tracer study
+          _progress = 0.25;
+        }
+      });
+    } catch (e) {
+      debugPrint('Gagal ambil data dashboard: $e');
+    }
+  }
+
   void _showSnack(String text) {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
@@ -74,7 +116,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   void _onNavTap(int i) {
-    if (i == 0) return; // sedang di Beranda
+    if (i == 0) return; 
     _openTab(i);
   }
 

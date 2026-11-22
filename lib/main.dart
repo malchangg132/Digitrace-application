@@ -1,9 +1,17 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'halaman/loginscreen.dart';
 import 'user/dashboard.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Supabase.initialize(
+    url: 'https://fxehvjphhgvyxrzvebgh.supabase.co',
+    publishableKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ4ZWh2anBoaGd2eXhyenZlYmdoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI3MTY4NjYsImV4cCI6MjEwODI5Mjg2Nn0.rZqkW0AHIx5VmUqhddgPKPNy2iihTWo1keNsfWYEees',
+  );
+
   runApp(MyApp());
 }
 
@@ -14,7 +22,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Digitrace',
       theme: ThemeData(),
-      home: const DashboardScreen(),
+      home: const SplashScreen(),
     );
   }
 }

@@ -63,7 +63,7 @@ class _NavigasiAdminState extends State<NavigasiAdmin> {
   int _selectedIndex = 0;
   final List<Widget> _pages = [
     DashAdmin(),
-    DataAlumniScreen(),
+    DataAlumni(),
     const Center(child: Text('Halaman Laporan')),
     const Center(child: Text('Halaman Profil')),
   ];

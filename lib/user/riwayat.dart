@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
 class RiwayatData {
-  // Pendidikan
+  // pendidikan
   final String pendidikanTerakhir;
   final String namaUniversitas;
   final String programStudi;
   final String tahunMasuk;
   final String statusPendidikan;
-  // Pekerjaan
+  // pekerjaan
   final String statusKerja;
   final String namaPerusahaan;
   final String posisi;
@@ -32,21 +32,6 @@ class RiwayatScreen extends StatelessWidget {
   final RiwayatData data;
   const RiwayatScreen({super.key, required this.data});
 
-  void _onNavTap(BuildContext context, int i) {
-    switch (i) {
-      case 0: // Beranda -> kembali ke Dashboard
-        Navigator.pop(context);
-        break;
-      case 1: // Tracer
-      case 3: // Profil
-        // kembali ke Dashboard, lalu Dashboard membuka tab tersebut
-        Navigator.pop(context, i);
-        break;
-      default:
-        break; // sedang di Riwayat
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -61,25 +46,9 @@ class RiwayatScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // ===== PANAH KEMBALI =====
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(20),
-                        onTap: () => Navigator.pop(context),
-                        child: const Padding(
-                          padding: EdgeInsets.all(8),
-                          child: Icon(
-                            Icons.arrow_back,
-                            size: 20,
-                            color: Color(0xFF244B73),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 46),
 
-                    // ===== JUDUL =====
+                    // judul
                     const Padding(
                       padding: EdgeInsets.only(left: 24),
                       child: Text(
@@ -104,7 +73,7 @@ class RiwayatScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 40),
 
-                    // ===== RIWAYAT PENDIDIKAN =====
+                    // riwayat pdndidikan
                     const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 24),
                       child: _SectionTitle(
@@ -128,7 +97,7 @@ class RiwayatScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 25),
 
-                    // ===== RIWAYAT PEKERJAAN =====
+                    // riwayat pkrjaan
                     const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 24),
                       child: _SectionTitle(
@@ -154,18 +123,12 @@ class RiwayatScreen extends StatelessWidget {
                 ),
               ),
             ),
-            _BottomNav(
-              selectedIndex: 2,
-              onTap: (i) => _onNavTap(context, i),
-            ),
           ],
         ),
       ),
     );
   }
 }
-
-// WIDGET PEMBANTU
 
 class _SectionTitle extends StatelessWidget {
   final IconData icon;
@@ -262,65 +225,6 @@ class _InfoCard extends StatelessWidget {
               ),
             ),
         ],
-      ),
-    );
-  }
-}
-
-class _BottomNav extends StatelessWidget {
-  final int selectedIndex;
-  final ValueChanged<int> onTap;
-
-  const _BottomNav({required this.selectedIndex, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    final items = [
-      (Icons.home_outlined, 'Beranda'),
-      (Icons.description_outlined, 'Tracer'),
-      (Icons.history, 'Riwayat'),
-      (Icons.person_outline, 'Profil'),
-    ];
-
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFFF2F6F4),
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
-        border: Border.all(color: const Color(0xFFD5DBD8)),
-      ),
-      child: SafeArea(
-        top: false,
-        child: SizedBox(
-          height: 72,
-          child: Row(
-            children: List.generate(items.length, (i) {
-              final selected = i == selectedIndex;
-              final color = selected
-                  ? const Color(0xFF1B2B45)
-                  : const Color(0xFF4F6F95);
-              return Expanded(
-                child: InkWell(
-                  onTap: () => onTap(i),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(items[i].$1, size: 34, color: color),
-                      const SizedBox(height: 2),
-                      Text(
-                        items[i].$2,
-                        style: TextStyle(
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.w700,
-                          color: color,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            }),
-          ),
-        ),
       ),
     );
   }

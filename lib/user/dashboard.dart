@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'tracer.dart';
-import 'profil.dart';
 import 'notifikasi.dart';
-import '../services/sesi.dart'; // <-- BARU
-import '../services/tracer_service.dart'; // <-- BARU
+import '../services/sesi.dart'; 
+import '../services/tracer_service.dart'; 
 
 class _NotifItem {
   final IconData icon;
@@ -19,7 +18,15 @@ class _NotifItem {
 }
 
 class DashboardScreen extends StatefulWidget {
-  const DashboardScreen({super.key});
+  // fungsi pindah tab dan hasil tracer, dikirim dari NavigasiUser
+  final Function(int) onPindahTab;
+  final TracerResult? hasilTracer;
+
+  const DashboardScreen({
+    super.key,
+    required this.onPindahTab,
+    this.hasilTracer,
+  });
 
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
@@ -27,7 +34,7 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
 
-  // <-- BARU: nilai awal dikosongkan, diisi dari supabase lewat _muatData()
+  // nilai awal dikosongkan, diisi dari supabase lewat _muatData()
   String _nama = '';
   String _status = '-';
   double _progress = 0;
@@ -35,7 +42,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   String _prodi = '-';
   List<String> _karierLines = ['Belum Bekerja'];
   String _terakhirDiperbarui = '-';
-  final int _navIndex = 0;
 
   final List<_NotifItem> _notifs = [
     _NotifItem(
@@ -64,14 +70,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
     ),
   ];
 
-  // <-- BARU
   @override
   void initState() {
     super.initState();
     _muatData();
   }
 
-  // <-- BARU: ambil data alumni yang sedang login dari supabase
+  //ambil data alumni yang sedang login dari supabase
   Future<void> _muatData() async {
     final akun = Sesi.akun;
     if (akun == null) return;
@@ -101,50 +106,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
     } catch (e) {
       debugPrint('Gagal ambil data dashboard: $e');
     }
-  }
 
-  void _showSnack(String text) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(text),
-          behavior: SnackBarBehavior.floating,
-          duration: const Duration(seconds: 1),
-        ),
-      );
-  }
-
-  void _onNavTap(int i) {
-    if (i == 0) return; 
-    _openTab(i);
-  }
-
-  // Dashboard jadi "pusat" navigasi tab. Halaman tab (Tracer/Profil) bisa
-  // mengirim balik nomor tab lain (int) kalau user menekan navbar-nya,
-  // atau TracerResult kalau form tracer selesai diisi.
-  Future<void> _openTab(int i) async {
-    Object? result;
-    if (i == 1) {
-      result = await Navigator.push<Object?>(
-        context,
-        MaterialPageRoute(builder: (_) => const TracerScreen()),
-      );
-    } else if (i == 3) {
-      result = await Navigator.push<Object?>(
-        context,
-        MaterialPageRoute(builder: (_) => const ProfilScreen()),
-      );
-    } else {
-      _showSnack('Halaman Riwayat belum tersedia');
-      return;
-    }
-
-    if (!mounted) return;
-    if (result is TracerResult) {
-      _terapkanHasilTracer(result);
-    } else if (result is int && result != i) {
-      _openTab(result);
+    // kalau baru selesai isi tracer, tampilkan hasil isiannya
+    if (widget.hasilTracer != null && mounted) {
+      _terapkanHasilTracer(widget.hasilTracer!);
     }
   }
 
@@ -159,7 +124,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   String _capitalize(String s) =>
       s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
 
-  // Perbarui dashboard dengan data hasil isian Tracer Study
+  // perbarui dashboard dengan data hasil isian Tracer Study
   void _terapkanHasilTracer(TracerResult result) {
     final tgl = _formatTanggal(DateTime.now());
     setState(() {
@@ -183,15 +148,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
     });
   }
 
-  // Buka halaman Notifikasi (icon ">" di kartu Notifikasi & Update).
-  // Kalau di sana user menekan navbar, nomor tab-nya dikirim balik (int).
-  Future<void> _showAllNotifs() async {
-    final result = await Navigator.push<Object?>(
+  // buka halaman notifikasi (icon ">" di kartu Notifikasi & Update).
+  // tidak perlu menunggu hasil lagi karena navbar sudah dipisah
+  void _showAllNotifs() {
+    Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => const NotifikasiScreen()),
     );
-    if (!mounted) return;
-    if (result is int) _openTab(result);
   }
 
   @override
@@ -226,14 +189,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
               ),
             ),
-            _BottomNav(selectedIndex: _navIndex, onTap: _onNavTap),
           ],
         ),
       ),
     );
   }
 
-  // ===== HEADER: sapaan + status + gambar wisuda =====
+  //sapaan + status + gambar wisuda =====
   Widget _buildHeader() {
     return SizedBox(
       height: 118,
@@ -331,7 +293,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // ===== PERJALANAN ALUMNI =====
+  //perjalanan alumni
   Widget _buildProgress() {
     return _Card(
       color: const Color(0xFFE6EDFB),
@@ -384,7 +346,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // ===== PENDIDIKAN + KARIER =====
+  //pendidikan dan karier
   Widget _buildPendidikanKarier() {
     return IntrinsicHeight(
       child: Row(
@@ -414,12 +376,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // ===== TRACER STUDY =====
+  // tracer study
   Widget _buildTracer() {
     return _Card(
       color: const Color(0xFFD7E3F8),
       padding: const EdgeInsets.all(12),
-      onTap: () => _onNavTap(1),
+      onTap: () => widget.onPindahTab(1),
       child: Row(
         children: [
           const _IconBox(
@@ -458,7 +420,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // ===== NOTIFIKASI & UPDATE =====
+  // notifikasi dan update
   Widget _buildNotifikasi() {
     final preview = _notifs.take(2).toList();
     return Container(
@@ -526,12 +488,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // ===== BANNER AJAKAN =====
+  // banner ajakan
   Widget _buildBanner() {
     return _Card(
       color: const Color(0xFFE6EDFB),
       padding: const EdgeInsets.all(12),
-      onTap: () => _onNavTap(1),
+      onTap: () => widget.onPindahTab(1), 
       child: Row(
         children: [
           Container(
@@ -569,7 +531,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 }
 
-// WIDGET PEMBANTU
 
 class _Card extends StatelessWidget {
   final Color color;
@@ -724,65 +685,6 @@ class _NotifTile extends StatelessWidget {
               style: const TextStyle(fontSize: 8.5, color: Color(0xFF3A4A66)),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _BottomNav extends StatelessWidget {
-  final int selectedIndex;
-  final ValueChanged<int> onTap;
-
-  const _BottomNav({required this.selectedIndex, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    final items = [
-      (Icons.home_outlined, 'Beranda'),
-      (Icons.description_outlined, 'Tracer'),
-      (Icons.history, 'Riwayat'),
-      (Icons.person_outline, 'Profil'),
-    ];
-
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFFF2F6F4),
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
-        border: Border.all(color: const Color(0xFFD5DBD8)),
-      ),
-      child: SafeArea(
-        top: false,
-        child: SizedBox(
-          height: 72,
-          child: Row(
-            children: List.generate(items.length, (i) {
-              final selected = i == selectedIndex;
-              final color = selected
-                  ? const Color(0xFF1B2B45)
-                  : const Color(0xFF4F6F95);
-              return Expanded(
-                child: InkWell(
-                  onTap: () => onTap(i),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(items[i].$1, size: 34, color: color),
-                      const SizedBox(height: 2),
-                      Text(
-                        items[i].$2,
-                        style: TextStyle(
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.w700,
-                          color: color,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            }),
-          ),
         ),
       ),
     );

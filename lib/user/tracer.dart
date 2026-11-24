@@ -19,7 +19,9 @@ class TracerResult {
 }
 
 class TracerScreen extends StatefulWidget {
-  const TracerScreen({super.key});
+  final Function(TracerResult) onSelesai;
+
+  const TracerScreen({super.key, required this.onSelesai});
 
   @override
   State<TracerScreen> createState() => _TracerScreenState();
@@ -47,7 +49,7 @@ class _TracerScreenState extends State<TracerScreen> {
     'lokasi',
   ];
 
-  // Field yang wajib diisi (Data Pekerjaan boleh kosong, mis. kalau kuliah)
+  // field wajib diisi
   static const List<String> _requiredNames = [
     'nama',
     'ttl',
@@ -85,7 +87,7 @@ class _TracerScreenState extends State<TracerScreen> {
     super.dispose();
   }
 
-  //  VALIDATOR
+  // validator
   String? _req(String? v, String label) {
     if (v == null || v.trim().isEmpty) return '$label wajib diisi';
     return null;
@@ -132,7 +134,8 @@ class _TracerScreenState extends State<TracerScreen> {
       );
   }
 
-  void _submit() {
+  //jadi async supaya bisa menunggu halaman Terima Kasih ditutup
+  Future<void> _submit() async {
     FocusScope.of(context).unfocus();
 
     final valid = _formKey.currentState?.validate() ?? false;
@@ -156,36 +159,23 @@ class _TracerScreenState extends State<TracerScreen> {
       return;
     }
 
-    // Data masih dummy. Nanti ganti dengan pemanggilan API (POST) di sini.
-    // Halaman Tracer diganti halaman Terima Kasih, dan hasil isian dikirim
-    // ke Dashboard. Saat Terima Kasih ditutup, user langsung kembali ke Dashboard.
-    Navigator.pushReplacement<void, TracerResult>(
-      context,
-      MaterialPageRoute<void>(builder: (_) => const TerimaKasihScreen()),
-      result: TracerResult(
-        status: _c['status']!.text.trim(),
-        namaUniversitas: _c['universitas']!.text.trim(),
-        programStudi: _c['prodi']!.text.trim(),
-        perusahaan: _c['perusahaan']!.text.trim(),
-        posisi: _c['posisi']!.text.trim(),
-      ),
+    final hasil = TracerResult(
+      status: _c['status']!.text.trim(),
+      namaUniversitas: _c['universitas']!.text.trim(),
+      programStudi: _c['prodi']!.text.trim(),
+      perusahaan: _c['perusahaan']!.text.trim(),
+      posisi: _c['posisi']!.text.trim(),
     );
+
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const TerimaKasihScreen()),
+    );
+    if (!mounted) return;
+    widget.onSelesai(hasil);
   }
 
-  void _onNavTap(int i) {
-    if (i == 1) return; // sedang di Tracer
-    if (i == 0) {
-      Navigator.pop(context); // kembali ke Beranda
-      return;
-    }
-    if (i == 3) {
-      Navigator.pop(context, 3); // kembali ke Dashboard, lalu buka Profil
-      return;
-    }
-    _showSnack('Halaman Riwayat belum tersedia');
-  }
-
-  //  PEMBANTU FIELD
+  // pembantu field
   Widget _f(
     String name,
     String label,
@@ -230,21 +220,12 @@ class _TracerScreenState extends State<TracerScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // ===== HEADER =====
+                      //header
                       Padding(
                         padding: const EdgeInsets.only(left: 4),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            InkWell(
-                              onTap: () => Navigator.pop(context),
-                              child: const Icon(
-                                Icons.arrow_back,
-                                size: 20,
-                                color: Color(0xFF244B73),
-                              ),
-                            ),
-                            const SizedBox(height: 16),
                             const Text(
                               'Tracer Study',
                               style: TextStyle(
@@ -266,7 +247,7 @@ class _TracerScreenState extends State<TracerScreen> {
                       ),
                       const SizedBox(height: 26),
 
-                      // ===== DATA DIRI ALUMNI =====
+                      // data diri alumni
                       const _Heading('Data Diri Alumni'),
                       _SectionCard(children: [
                         _f('nama', 'Nama Lengkap',
@@ -289,7 +270,7 @@ class _TracerScreenState extends State<TracerScreen> {
                       ]),
                       const SizedBox(height: 24),
 
-                      // ===== KONTAK & ALAMAT =====
+                      // kontak dan alamat
                       const _Heading('Kontak & Alamat'),
                       _SectionCard(children: [
                         _f('email', 'Email', 'Contoh: endah123@gmail.com',
@@ -311,7 +292,7 @@ class _TracerScreenState extends State<TracerScreen> {
                       ]),
                       const SizedBox(height: 24),
 
-                      // ===== STATUS SAAT INI =====
+                      // status saat ini
                       const _Heading('Status Saat Ini'),
                       _SectionCard(children: [
                         _f('status', 'Status',
@@ -319,7 +300,7 @@ class _TracerScreenState extends State<TracerScreen> {
                       ]),
                       const SizedBox(height: 24),
 
-                      // ===== DATA PENDIDIKAN =====
+                      // data pendidikan
                       const _Heading('Data Pendidikan'),
                       _SectionCard(children: [
                         _f('pendidikan', 'Pendidikan Terakhir',
@@ -357,7 +338,7 @@ class _TracerScreenState extends State<TracerScreen> {
                       ]),
                       const SizedBox(height: 24),
 
-                      // ===== DATA PEKERJAAN (opsional) =====
+                      // data pekerjaan
                       const _Heading('Data Pekerjaan'),
                       _SectionCard(children: [
                         _f('statusKerja', 'Status saat ini',
@@ -381,7 +362,7 @@ class _TracerScreenState extends State<TracerScreen> {
                       ]),
                       const SizedBox(height: 36),
 
-                      // ===== TOMBOL SELESAI =====
+                      // tombol selesai
                       SizedBox(
                         width: double.infinity,
                         height: 42,
@@ -411,15 +392,12 @@ class _TracerScreenState extends State<TracerScreen> {
                 ),
               ),
             ),
-            _BottomNav(selectedIndex: 1, onTap: _onNavTap),
           ],
         ),
       ),
     );
   }
 }
-
-//  WIDGET PEMBANTU
 
 class _Heading extends StatelessWidget {
   final String text;
@@ -538,65 +516,6 @@ class _Field extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _BottomNav extends StatelessWidget {
-  final int selectedIndex;
-  final ValueChanged<int> onTap;
-
-  const _BottomNav({required this.selectedIndex, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    final items = [
-      (Icons.home_outlined, 'Beranda'),
-      (Icons.description_outlined, 'Tracer'),
-      (Icons.history, 'Riwayat'),
-      (Icons.person_outline, 'Profil'),
-    ];
-
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFFF2F6F4),
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
-        border: Border.all(color: const Color(0xFFD5DBD8)),
-      ),
-      child: SafeArea(
-        top: false,
-        child: SizedBox(
-          height: 72,
-          child: Row(
-            children: List.generate(items.length, (i) {
-              final selected = i == selectedIndex;
-              final color = selected
-                  ? const Color(0xFF1B2B45)
-                  : const Color(0xFF4F6F95);
-              return Expanded(
-                child: InkWell(
-                  onTap: () => onTap(i),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(items[i].$1, size: 34, color: color),
-                      const SizedBox(height: 2),
-                      Text(
-                        items[i].$2,
-                        style: TextStyle(
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.w700,
-                          color: color,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            }),
-          ),
-        ),
-      ),
     );
   }
 }

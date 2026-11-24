@@ -46,19 +46,7 @@ class _NotifikasiScreenState extends State<NotifikasiScreen> {
     ),
   ];
 
-  void _showSnack(String text) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(text),
-          behavior: SnackBarBehavior.floating,
-          duration: const Duration(seconds: 1),
-        ),
-      );
-  }
-
-  // Geser kartu ke kiri/kanan untuk menghapus, bisa dibatalkan
+  // geser kartu ke kiri and kanan, bisa dibatalkan yeu
   void _hapus(int index) {
     final item = _items[index];
     setState(() => _items.removeAt(index));
@@ -79,21 +67,6 @@ class _NotifikasiScreenState extends State<NotifikasiScreen> {
       );
   }
 
-  void _onNavTap(int i) {
-    switch (i) {
-      case 0: // Beranda -> kembali ke Dashboard
-        Navigator.pop(context);
-        break;
-      case 1: // Tracer -> kembali ke Dashboard, lalu Dashboard membuka Tracer
-      case 3: // Profil -> kembali ke Dashboard, lalu Dashboard membuka Profil
-        Navigator.pop(context, i);
-        break;
-      case 2:
-        _showSnack('Halaman Riwayat belum tersedia');
-        break;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -108,7 +81,7 @@ class _NotifikasiScreenState extends State<NotifikasiScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // ===== PANAH KEMBALI =====
+                    // kembali
                     Padding(
                       padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
                       child: InkWell(
@@ -126,7 +99,7 @@ class _NotifikasiScreenState extends State<NotifikasiScreen> {
                     ),
                     const SizedBox(height: 8),
 
-                    // ===== JUDUL =====
+                    // judul
                     const Padding(
                       padding: EdgeInsets.only(left: 24),
                       child: Text(
@@ -140,7 +113,7 @@ class _NotifikasiScreenState extends State<NotifikasiScreen> {
                     ),
                     const SizedBox(height: 18),
 
-                    // ===== DAFTAR NOTIFIKASI =====
+                    // daftar notifikasi
                     if (_items.isEmpty)
                       const Padding(
                         padding: EdgeInsets.only(top: 120),
@@ -177,15 +150,12 @@ class _NotifikasiScreenState extends State<NotifikasiScreen> {
                 ),
               ),
             ),
-            _BottomNav(selectedIndex: 0, onTap: _onNavTap),
           ],
         ),
       ),
     );
   }
 }
-
-// WIDGET PEMBANTU
 
 class _NotifCard extends StatelessWidget {
   final _Notif item;
@@ -293,65 +263,6 @@ class _SwipeBg extends StatelessWidget {
         borderRadius: BorderRadius.circular(10),
       ),
       child: const Icon(Icons.delete_outline, color: Color(0xFF7F0A0A)),
-    );
-  }
-}
-
-class _BottomNav extends StatelessWidget {
-  final int selectedIndex;
-  final ValueChanged<int> onTap;
-
-  const _BottomNav({required this.selectedIndex, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    final items = [
-      (Icons.home_outlined, 'Beranda'),
-      (Icons.description_outlined, 'Tracer'),
-      (Icons.history, 'Riwayat'),
-      (Icons.person_outline, 'Profil'),
-    ];
-
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFFF2F6F4),
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
-        border: Border.all(color: const Color(0xFFD5DBD8)),
-      ),
-      child: SafeArea(
-        top: false,
-        child: SizedBox(
-          height: 72,
-          child: Row(
-            children: List.generate(items.length, (i) {
-              final selected = i == selectedIndex;
-              final color = selected
-                  ? const Color(0xFF1B2B45)
-                  : const Color(0xFF4F6F95);
-              return Expanded(
-                child: InkWell(
-                  onTap: () => onTap(i),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(items[i].$1, size: 34, color: color),
-                      const SizedBox(height: 2),
-                      Text(
-                        items[i].$2,
-                        style: TextStyle(
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.w700,
-                          color: color,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            }),
-          ),
-        ),
-      ),
     );
   }
 }

@@ -41,23 +41,6 @@ class _ProfilScreenState extends State<ProfilScreen> {
       );
   }
 
-  void _onNavTap(int i) {
-    switch (i) {
-      case 0: // Beranda -> kembali ke Dashboard
-        Navigator.pop(context);
-        break;
-      case 1: // Tracer -> kembali ke Dashboard, lalu Dashboard membuka Tracer
-        Navigator.pop(context, 1);
-        break;
-      case 2:
-        _showSnack('Halaman Riwayat belum tersedia');
-        break;
-      default:
-        break; // sedang di Profil
-    }
-  }
-
-  // Buka Edit Profil; kalau ada perubahan, tampilkan datanya di sini
   Future<void> _openEdit() async {
     final result = await Navigator.push<ProfilData>(
       context,
@@ -105,7 +88,6 @@ class _ProfilScreenState extends State<ProfilScreen> {
     );
 
     if (ya == true && mounted) {
-      // TODO: hapus token / sesi login di sini kalau sudah pakai API
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (_) => const Loginscreen()),
@@ -130,25 +112,9 @@ class _ProfilScreenState extends State<ProfilScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // ===== PANAH KEMBALI =====
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(20),
-                        onTap: () => Navigator.pop(context),
-                        child: const Padding(
-                          padding: EdgeInsets.all(8),
-                          child: Icon(
-                            Icons.arrow_back,
-                            size: 20,
-                            color: Color(0xFF244B73),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 46),
 
-                    // ===== JUDUL =====
+                    // judull
                     const Padding(
                       padding: EdgeInsets.only(left: 24),
                       child: Text(
@@ -162,7 +128,7 @@ class _ProfilScreenState extends State<ProfilScreen> {
                     ),
                     const SizedBox(height: 26),
 
-                    // ===== CARD DATA PRIBADI =====
+                    // card data pribadi
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 24),
                       child: _Card(
@@ -192,7 +158,7 @@ class _ProfilScreenState extends State<ProfilScreen> {
                     ),
                     const SizedBox(height: 30),
 
-                    // ===== CARD PENGATURAN AKUN =====
+                    // card pengaturan akun
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 24),
                       child: _Card(
@@ -231,7 +197,7 @@ class _ProfilScreenState extends State<ProfilScreen> {
                     ),
                     const SizedBox(height: 50),
 
-                    // ===== TOMBOL LOGOUT =====
+                    // logout
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 28),
                       child: Container(
@@ -274,15 +240,12 @@ class _ProfilScreenState extends State<ProfilScreen> {
                 ),
               ),
             ),
-            _BottomNav(selectedIndex: 3, onTap: _onNavTap),
           ],
         ),
       ),
     );
   }
 }
-
-//============ WIDGET PEMBANTU============
 
 class _Card extends StatelessWidget {
   final Widget child;
@@ -437,65 +400,6 @@ class _MenuRow extends StatelessWidget {
               color: Color(0xFF244B73),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _BottomNav extends StatelessWidget {
-  final int selectedIndex;
-  final ValueChanged<int> onTap;
-
-  const _BottomNav({required this.selectedIndex, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    final items = [
-      (Icons.home_outlined, 'Beranda'),
-      (Icons.description_outlined, 'Tracer'),
-      (Icons.history, 'Riwayat'),
-      (Icons.person_outline, 'Profil'),
-    ];
-
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFFF2F6F4),
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
-        border: Border.all(color: const Color(0xFFD5DBD8)),
-      ),
-      child: SafeArea(
-        top: false,
-        child: SizedBox(
-          height: 72,
-          child: Row(
-            children: List.generate(items.length, (i) {
-              final selected = i == selectedIndex;
-              final color = selected
-                  ? const Color(0xFF1B2B45)
-                  : const Color(0xFF4F6F95);
-              return Expanded(
-                child: InkWell(
-                  onTap: () => onTap(i),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(items[i].$1, size: 34, color: color),
-                      const SizedBox(height: 2),
-                      Text(
-                        items[i].$2,
-                        style: TextStyle(
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.w700,
-                          color: color,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            }),
-          ),
         ),
       ),
     );

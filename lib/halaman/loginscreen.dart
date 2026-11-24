@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:digitrace/admin/bottombar.dart';
-import 'package:digitrace/user/dashboard.dart';
+import 'package:digitrace/user/bottombar.dart'; 
+import 'package:digitrace/guru/dash_guru.dart'; 
 import '../services/login_service.dart';
 import '../services/sesi.dart';
 
@@ -72,7 +73,12 @@ class _LoginscreenState extends State<Loginscreen> {
       } else if (hasil.role == 'user') {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const DashboardScreen()),
+          MaterialPageRoute(builder: (context) => const NavigasiUser()), 
+        );
+      } else if (hasil.role == 'guru') { 
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const DashboardPage()), 
         );
       } else {
         // role guru, halamannya belum dibuat

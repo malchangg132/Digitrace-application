@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 
 class DataAlumni extends StatefulWidget {
@@ -8,6 +10,38 @@ class DataAlumni extends StatefulWidget {
 }
 
 class _DataAlumniState extends State<DataAlumni> {
+
+  String _selectedFilter = 'Semua';
+  //fungsi filter item
+  Widget _filterItem(String title, bool isSelected) {
+    return InkWell(
+      onTap: () {
+        setState(() {
+          _selectedFilter = title;
+        });
+      },
+      child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: isSelected
+          ? const Color(0xFF28527A)
+          : Colors.white,
+        border: Border.all(
+          color: const Color(0xFF28527A),
+        ),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(title, 
+      style: TextStyle(
+        color: isSelected
+        ? Colors.white
+        : const Color(0xFF28527A)
+        ),
+       ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -52,17 +86,29 @@ class _DataAlumniState extends State<DataAlumni> {
                 ],
               ),
               ),
-              Container(
+
+              // filter data alumni
+              Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 15,),
-                decoration: BoxDecoration(
-                  color:  Color(0xFF28527A),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: const Text('Semua',
-                style: TextStyle(color: Colors.white),
-                ),
+                child: Row(
+                  children: [
+                    const SizedBox(width: 8,),
+                    _filterItem('Semua', true),
+
+                    const SizedBox(width: 8,),
+                    _filterItem('Bekerja', false),
+
+                    const SizedBox(width: 8,),
+                    _filterItem('Kuliah', false),
+
+                    const SizedBox(width: 8,),
+                    _filterItem('Wirausaha', false),
+                    
+                    const SizedBox(width: 8,),
+                    _filterItem('Lainnya', false),
+                  ],
+                )
               ),
-              
         ],
       ),
     );

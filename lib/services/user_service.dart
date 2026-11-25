@@ -19,4 +19,11 @@ class UserService {
   Future<void> ubahNama(int idUser, String nama) async {
     await _db.from('user').update({'nama_user': nama}).eq('id_user', idUser);
   }
+
+  // <-- BARU: ubah password di tabel user
+  Future<void> ubahPassword(int idUser, String passwordBaru) async {
+    await _db
+        .from('user')
+        .update({'password_user': passwordBaru}).eq('id_user', idUser);
+  }
 }

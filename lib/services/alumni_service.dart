@@ -30,4 +30,9 @@ class AlumniService {
     final data = alumni.toJson()..remove('id_user');
     await _db.from('alumni').update(data).eq('id_user', alumni.idUser);
   }
+
+  // <-- BARU: ubah nomor hp saja
+  Future<void> ubahNoHp(int idUser, String noHp) async {
+    await _db.from('alumni').update({'no_hp': noHp}).eq('id_user', idUser);
+  }
 }

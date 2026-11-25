@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:digitrace/services/sesi.dart'; // <-- BARU
+import 'package:digitrace/services/user_service.dart'; // <-- BARU
+import 'package:digitrace/services/alumni_service.dart'; // <-- BARU
 
 // WARNA
 const Color _kBlueDark = Color(0xFF264D7A);
@@ -51,11 +54,11 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
   late String _hpSaved;
   bool _editingHp = false;
 
-  // Password (dummy, nanti diganti API)
+  // Password
   final TextEditingController _pwC = TextEditingController();
   final GlobalKey<FormFieldState<String>> _pwKey =
       GlobalKey<FormFieldState<String>>();
-  String _pwSaved = 'password123';
+  String _pwSaved = ''; // <-- UBAH: kosong, isinya password baru yang belum disimpan
   bool _editingPw = false;
   bool _showPassword = false;
   bool _pwChanged = false;
@@ -115,7 +118,7 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
       _commitHp();
     } else {
       setState(() {
-        _hpC.text = _hpSaved;
+        _hpC.text = _hpSaved == '-' ? '' : _hpSaved; // <-- UBAH: "-" jangan masuk ke kolom isian
         _editingHp = true;
       });
     }
@@ -148,7 +151,7 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
   }
 
   // SIMPAN
-  void _simpan() {
+  Future<void> _simpan() async { // <-- UBAH: jadi async
     FocusScope.of(context).unfocus();
 
     if (!_commitHp() || !_commitPw()) {
@@ -156,14 +159,33 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
       return;
     }
 
-    final changed = _hpSaved != widget.data.noHp || _pwChanged;
-    if (!changed) {
+    final hpBerubah = _hpSaved != widget.data.noHp; // <-- BARU
+    if (!hpBerubah && !_pwChanged) { // <-- UBAH
       _showSnack('Tidak ada perubahan');
       return;
     }
 
-    // Data masih dummy. Nanti ganti dengan pemanggilan API (PATCH/PUT) di sini.
-    // Perubahan password juga dikirim lewat API, bukan disimpan di aplikasi.
+    // <-- BARU: simpan ke supabase lewat service
+    final sesi = Sesi.akun;
+    if (sesi == null) {
+      _showSnack('Sesi habis, silakan login ulang');
+      return;
+    }
+
+    try {
+      if (hpBerubah) {
+        await AlumniService().ubahNoHp(sesi.id, _hpSaved);
+      }
+      if (_pwChanged) {
+        await UserService().ubahPassword(sesi.id, _pwSaved);
+      }
+    } catch (e) {
+      if (!mounted) return;
+      _showSnack('Gagal menyimpan perubahan');
+      return;
+    }
+
+    if (!mounted) return;
     Navigator.pop(context, widget.data.copyWith(noHp: _hpSaved));
   }
 
@@ -353,7 +375,11 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
                                 decoration:
                                     _inputDecoration('Password baru'),
                               )
-                            : _readOnly(_showPassword ? _pwSaved : '********'),
+                            // <-- UBAH: password lama tidak diambil dari supabase,
+                            // jadi yang bisa dilihat hanya password baru yang barusan diketik
+                            : _readOnly(_showPassword && _pwSaved.isNotEmpty
+                                ? _pwSaved
+                                : '********'),
                         actions: [
                           _ActionIcon(
                             icon: _showPassword

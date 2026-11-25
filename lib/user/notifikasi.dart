@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 
-class _Notif {
+// <-- UBAH: jadi public (tanpa _) supaya dipakai juga di dashboard dan bottombar
+class NotifData {
   final int id;
   final String title;
   final String desc;
   final String tanggal;
 
-  const _Notif({
+  const NotifData({
     required this.id,
     required this.title,
     required this.desc,
@@ -15,41 +16,21 @@ class _Notif {
 }
 
 class NotifikasiScreen extends StatefulWidget {
-  const NotifikasiScreen({super.key});
+  final List<NotifData> items; //daftar notif dari NavigasiUser
+
+  const NotifikasiScreen({super.key, required this.items}); // <-- UBAH
 
   @override
   State<NotifikasiScreen> createState() => _NotifikasiScreenState();
 }
 
 class _NotifikasiScreenState extends State<NotifikasiScreen> {
-  final List<_Notif> _items = [
-    const _Notif(
-      id: 1,
-      title: 'Tracer Study Diperbarui',
-      desc: 'Data Tracer study kamu telah berhasil disimpan. '
-          'Terimakasih sudah melengkapi',
-      tanggal: '25 september 2026',
-    ),
-    const _Notif(
-      id: 2,
-      title: 'Tracer Study Diperbarui',
-      desc: 'Data Tracer study kamu telah berhasil disimpan. '
-          'Terimakasih sudah melengkapi',
-      tanggal: '25 september 2026',
-    ),
-    const _Notif(
-      id: 3,
-      title: 'Tracer Study Diperbarui',
-      desc: 'Data Tracer study kamu telah berhasil disimpan. '
-          'Terimakasih sudah melengkapi',
-      tanggal: '25 september 2026',
-    ),
-  ];
+  // <-- UBAH: list dummy dihapus, pakai widget.items
 
   // geser kartu ke kiri and kanan, bisa dibatalkan yeu
   void _hapus(int index) {
-    final item = _items[index];
-    setState(() => _items.removeAt(index));
+    final item = widget.items[index]; // <-- UBAH
+    setState(() => widget.items.removeAt(index)); // <-- UBAH
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
@@ -59,8 +40,10 @@ class _NotifikasiScreenState extends State<NotifikasiScreen> {
           action: SnackBarAction(
             label: 'Batalkan',
             onPressed: () {
-              final at = index > _items.length ? _items.length : index;
-              setState(() => _items.insert(at, item));
+              final at = index > widget.items.length
+                  ? widget.items.length
+                  : index; // <-- UBAH
+              setState(() => widget.items.insert(at, item)); // <-- UBAH
             },
           ),
         ),
@@ -69,6 +52,8 @@ class _NotifikasiScreenState extends State<NotifikasiScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final items = widget.items; //supaya isi di bawah tidak perlu diubah banyak
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -114,7 +99,7 @@ class _NotifikasiScreenState extends State<NotifikasiScreen> {
                     const SizedBox(height: 18),
 
                     // daftar notifikasi
-                    if (_items.isEmpty)
+                    if (items.isEmpty)
                       const Padding(
                         padding: EdgeInsets.only(top: 120),
                         child: Center(
@@ -128,21 +113,21 @@ class _NotifikasiScreenState extends State<NotifikasiScreen> {
                         ),
                       )
                     else
-                      for (int i = 0; i < _items.length; i++)
+                      for (int i = 0; i < items.length; i++)
                         Padding(
                           padding: const EdgeInsets.fromLTRB(24, 0, 24, 22),
                           child: Dismissible(
-                            key: ValueKey(_items[i].id),
+                            key: ValueKey(items[i].id),
                             onDismissed: (_) => _hapus(i),
                             background: const _SwipeBg(
                                 alignment: Alignment.centerLeft),
                             secondaryBackground: const _SwipeBg(
                                 alignment: Alignment.centerRight),
                             child: _NotifCard(
-                              item: _items[i],
-                              colorIndex: _items[i].id % 3 == 0
+                              item: items[i],
+                              colorIndex: items[i].id % 3 == 0
                                   ? 2
-                                  : (_items[i].id % 3) - 1,
+                                  : (items[i].id % 3) - 1,
                             ),
                           ),
                         ),
@@ -158,7 +143,7 @@ class _NotifikasiScreenState extends State<NotifikasiScreen> {
 }
 
 class _NotifCard extends StatelessWidget {
-  final _Notif item;
+  final NotifData item; // <-- UBAH
   final int colorIndex;
 
   const _NotifCard({required this.item, required this.colorIndex});

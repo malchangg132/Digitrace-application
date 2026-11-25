@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:digitrace/halaman/loginscreen.dart';
+import 'package:digitrace/services/sesi.dart';
+import 'package:digitrace/services/user_service.dart'; 
+import 'package:digitrace/services/alumni_service.dart'; 
 import 'editprofil.dart';
 import 'tentangaplikasi.dart';
 
@@ -11,14 +14,54 @@ class ProfilScreen extends StatefulWidget {
 }
 
 class _ProfilScreenState extends State<ProfilScreen> {
+  // nanti dgnti sm supabase
   ProfilData _data = const ProfilData(
-    nama: 'Nadya',
-    ttl: 'Malang, 26 januari 2009',
-    jurusan: 'RPL',
-    tahunLulus: '2025',
-    email: 'endah123@gmail.com',
-    noHp: '0817955517188',
+    nama: '-',
+    ttl: '-',
+    jurusan: '-',
+    tahunLulus: '-',
+    email: '-',
+    noHp: '-',
   );
+
+  //ambil data waktu halaman pertama dibuka
+  @override
+  void initState() {
+    super.initState();
+    _ambilData();
+  }
+
+  //kalau data kosong tampilkan "-"
+  String _isi(String? teks) {
+    if (teks == null || teks.isEmpty) return '-';
+    return teks;
+  }
+
+  //ambil data akun/tabel user dan data alumni dari supabase
+  Future<void> _ambilData() async {
+    final sesi = Sesi.akun;
+    if (sesi == null) return;
+
+    try {
+      final akun = await UserService().ambilAkun(sesi.id);
+      final alumni = await AlumniService().ambilSatu(sesi.id);
+
+      if (!mounted) return;
+      setState(() {
+        _data = ProfilData(
+          nama: _isi(akun?.namaUser),
+          ttl: _isi(alumni?.tempatTanggalLahir),
+          jurusan: _isi(alumni?.jurusan),
+          tahunLulus: _isi(alumni?.tahunLulus?.toString()),
+          email: _isi(akun?.emailUser),
+          noHp: _isi(alumni?.noHp),
+        );
+      });
+    } catch (e) {
+      if (!mounted) return;
+      _showSnack('Gagal mengambil data profil');
+    }
+  }
 
   List<(String, String)> get _rows => [
         ('Nama Lengkap', _data.nama),
@@ -88,6 +131,7 @@ class _ProfilScreenState extends State<ProfilScreen> {
     );
 
     if (ya == true && mounted) {
+      Sesi.keluar(); //hapus data login
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (_) => const Loginscreen()),

@@ -3,6 +3,7 @@ import 'dashboard.dart';
 import 'tracer.dart';
 import 'riwayat.dart';
 import 'profil.dart';
+import 'notifikasi.dart';
 
 // bottombar
 class BottombarUser extends StatelessWidget {
@@ -64,8 +65,10 @@ class NavigasiUser extends StatefulWidget {
 class _NavigasiUserState extends State<NavigasiUser> {
   int _selectedIndex = 0;
 
-  // hasil isian tracer, disimpan di sini supaya bisa dikirim ke dashboard
-  TracerResult? _hasilTracer;
+ 
+  final List<NotifData> _notifs = [];
+  int _idNotif = 0; // nomor id notif berikutnya
+  String _terakhirDiperbarui = '-'; // tanggal terakhir isi tracer (di sesi ini)
 
   // pindah tab, dipakai bottom bar dan tombol di dalam halaman
   void _pindahTab(int index) {
@@ -74,33 +77,47 @@ class _NavigasiUserState extends State<NavigasiUser> {
     });
   }
 
+  //ubah tanggal jadi tulisan, contoh: 25 november 2026
+  String _formatTanggal(DateTime d) {
+    const bulan = [
+      'januari', 'februari', 'maret', 'april', 'mei', 'juni',
+      'juli', 'agustus', 'september', 'oktober', 'november', 'desember',
+    ];
+    return '${d.day} ${bulan[d.month - 1]} ${d.year}';
+  }
+
+  // dipanggil setelah tracer berhasil disimpan
+  void _tracerSelesai() {
+    final tgl = _formatTanggal(DateTime.now());
+    setState(() {
+      _idNotif++;
+      _notifs.insert(
+        0,
+        NotifData(
+          id: _idNotif,
+          title: 'Tracer Study Diperbarui',
+          desc: 'Data Tracer study kamu telah berhasil disimpan. '
+              'Terimakasih sudah melengkapi',
+          tanggal: tgl,
+        ),
+      );
+      _terakhirDiperbarui = tgl;
+      _selectedIndex = 0; // kembali ke Beranda
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final List<Widget> pages = [
-      DashboardScreen(onPindahTab: _pindahTab, hasilTracer: _hasilTracer),
+      DashboardScreen(
+        onPindahTab: _pindahTab,
+        terakhirDiperbarui: _terakhirDiperbarui, 
+        notifs: _notifs,
+      ),
       TracerScreen(
-        onSelesai: (hasil) {
-          setState(() {
-            _hasilTracer = hasil;
-            _selectedIndex = 0; // kembali ke Beranda
-          });
-        },
+        onSelesai: (hasil) => _tracerSelesai(), 
       ),
-      // dummy
-      const RiwayatScreen(
-        data: RiwayatData(
-          pendidikanTerakhir: '-',
-          namaUniversitas: '-',
-          programStudi: '-',
-          tahunMasuk: '-',
-          statusPendidikan: '-',
-          statusKerja: '-',
-          namaPerusahaan: '-',
-          posisi: '-',
-          bidang: '-',
-          lokasi: '-',
-        ),
-      ),
+      const RiwayatScreen(),
       const ProfilScreen(),
     ];
 

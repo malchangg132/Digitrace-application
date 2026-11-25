@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:digitrace/services/sesi.dart';
+import 'package:digitrace/services/tracer_service.dart'; 
 
 class RiwayatData {
   // pendidikan
@@ -28,12 +30,76 @@ class RiwayatData {
   });
 }
 
-class RiwayatScreen extends StatelessWidget {
-  final RiwayatData data;
-  const RiwayatScreen({super.key, required this.data});
+class RiwayatScreen extends StatefulWidget {
+  const RiwayatScreen({super.key});
+
+  @override
+  State<RiwayatScreen> createState() => _RiwayatScreenState();
+}
+
+class _RiwayatScreenState extends State<RiwayatScreen> {
+  //data dr supabase
+  RiwayatData _data = const RiwayatData(
+    pendidikanTerakhir: '-',
+    namaUniversitas: '-',
+    programStudi: '-',
+    tahunMasuk: '-',
+    statusPendidikan: '-',
+    statusKerja: '-',
+    namaPerusahaan: '-',
+    posisi: '-',
+    bidang: '-',
+    lokasi: '-',
+  );
+
+  // ambil data waktu halaman dibuka
+  @override
+  void initState() {
+    super.initState();
+    _ambilData();
+  }
+
+  //kalau data kosong tampilkan "-"
+  String _isi(String? teks) {
+    if (teks == null || teks.isEmpty) return '-';
+    return teks;
+  }
+
+  //ambil data tracer study dari supabase
+  Future<void> _ambilData() async {
+    final sesi = Sesi.akun;
+    if (sesi == null) return;
+
+    try {
+      final tracer = await TracerService().ambil(sesi.id);
+      if (tracer == null || !mounted) return;
+
+      setState(() {
+        _data = RiwayatData(
+          pendidikanTerakhir: _isi(tracer.pendidikanTerakhir),
+          namaUniversitas: _isi(tracer.namaUniversitas),
+          programStudi: _isi(tracer.programStudy),
+          tahunMasuk: _isi(tracer.tahunMasuk?.toString()),
+          statusPendidikan: '-', // belum ada kolomnya di tabel tracer_study
+          statusKerja: _isi(tracer.statusAktif),
+          namaPerusahaan: _isi(tracer.namaPerusahaan),
+          posisi: _isi(tracer.posisiJabatan),
+          bidang: _isi(tracer.bidangPekerjaan),
+          lokasi: _isi(tracer.lokasiPekerjaan),
+        );
+      });
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Gagal mengambil data riwayat')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final data = _data; // supaya isi di bawah tidak perlu diubah
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(

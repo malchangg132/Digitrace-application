@@ -1,31 +1,20 @@
 import 'package:flutter/material.dart';
-import 'tracer.dart';
 import 'notifikasi.dart';
 import '../services/sesi.dart'; 
 import '../services/tracer_service.dart'; 
 
-class _NotifItem {
-  final IconData icon;
-  final String title;
-  final String desc;
-  final String time;
-  const _NotifItem({
-    required this.icon,
-    required this.title,
-    required this.desc,
-    required this.time,
-  });
-}
 
 class DashboardScreen extends StatefulWidget {
-  // fungsi pindah tab dan hasil tracer, dikirim dari NavigasiUser
+  // fungsi pindah tab, tanggal terakhir diperbarui, dan daftar notif, dikirim dari NavigasiUser
   final Function(int) onPindahTab;
-  final TracerResult? hasilTracer;
+  final String terakhirDiperbarui;
+  final List<NotifData> notifs; 
 
   const DashboardScreen({
     super.key,
     required this.onPindahTab,
-    this.hasilTracer,
+    required this.terakhirDiperbarui,
+    required this.notifs,
   });
 
   @override
@@ -41,34 +30,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   String _kampus = '-';
   String _prodi = '-';
   List<String> _karierLines = ['Belum Bekerja'];
-  String _terakhirDiperbarui = '-';
 
-  final List<_NotifItem> _notifs = [
-    _NotifItem(
-      icon: Icons.campaign_outlined,
-      title: 'Pengisian data tracer study periode 2026',
-      desc: 'Yuk lengkapi data kamu sebelum 30 september 2026',
-      time: '2 jam lalu',
-    ),
-    _NotifItem(
-      icon: Icons.info_outline,
-      title: 'Data tracer study berhasil diperbarui',
-      desc: 'Data kamu berhasil disimpan pada 25 september 2026',
-      time: '1 jam lalu',
-    ),
-    _NotifItem(
-      icon: Icons.school_outlined,
-      title: 'Status pendidikan kamu terverifikasi',
-      desc: 'Admin sekolah telah memverifikasi data pendidikan kamu',
-      time: 'Kemarin',
-    ),
-    _NotifItem(
-      icon: Icons.campaign_outlined,
-      title: 'Selamat datang di Digitrace',
-      desc: 'Lengkapi profil kamu untuk memulai tracer study',
-      time: '3 hari lalu',
-    ),
-  ];
+  // terakhirDiperbarui dan list _notifs dihapus (sekarang dari widget)
 
   @override
   void initState() {
@@ -107,54 +70,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
       debugPrint('Gagal ambil data dashboard: $e');
     }
 
-    // kalau baru selesai isi tracer, tampilkan hasil isiannya
-    if (widget.hasilTracer != null && mounted) {
-      _terapkanHasilTracer(widget.hasilTracer!);
-    }
-  }
-
-  String _formatTanggal(DateTime d) {
-    const bulan = [
-      'januari', 'februari', 'maret', 'april', 'mei', 'juni',
-      'juli', 'agustus', 'september', 'oktober', 'november', 'desember',
-    ];
-    return '${d.day} ${bulan[d.month - 1]} ${d.year}';
+    // <-- UBAH: bagian hasilTracer dihapus, data sudah diambil dari supabase di atas
   }
 
   String _capitalize(String s) =>
       s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
 
-  // perbarui dashboard dengan data hasil isian Tracer Study
-  void _terapkanHasilTracer(TracerResult result) {
-    final tgl = _formatTanggal(DateTime.now());
-    setState(() {
-      _status = _capitalize(result.status);
-      _kampus = result.namaUniversitas;
-      _prodi = result.programStudi;
-      _karierLines = result.perusahaan.isNotEmpty
-          ? [result.perusahaan, if (result.posisi.isNotEmpty) result.posisi]
-          : ['Belum Bekerja'];
-      _terakhirDiperbarui = tgl;
-      _progress = 1.0;
-      _notifs.insert(
-        0,
-        _NotifItem(
-          icon: Icons.info_outline,
-          title: 'Data tracer study berhasil diperbarui',
-          desc: 'Data kamu berhasil disimpan pada $tgl',
-          time: 'Baru saja',
-        ),
-      );
-    });
-  }
+  //formatTanggal dan _terapkanHasilTracer dipindah ke NavigasiUser
 
   // buka halaman notifikasi (icon ">" di kartu Notifikasi & Update).
-  // tidak perlu menunggu hasil lagi karena navbar sudah dipisah
-  void _showAllNotifs() {
-    Navigator.push(
+  // setelah kembali, refresh supaya notif yang dihapus hilang dari preview
+  Future<void> _showAllNotifs() async { // <-- UBAH: jadi async
+    await Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => const NotifikasiScreen()),
+      MaterialPageRoute(
+        builder: (_) => NotifikasiScreen(items: widget.notifs), // <-- UBAH
+      ),
     );
+    if (!mounted) return;
+    setState(() {});
   }
 
   @override
@@ -406,7 +340,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 style: TextStyle(fontSize: 9, color: Color(0xFF3F5E86)),
               ),
               Text(
-                _terakhirDiperbarui,
+                widget.terakhirDiperbarui, 
                 style: const TextStyle(
                   fontSize: 9.5,
                   fontWeight: FontWeight.w700,
@@ -422,7 +356,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   // notifikasi dan update
   Widget _buildNotifikasi() {
-    final preview = _notifs.take(2).toList();
+    final preview = widget.notifs.take(2).toList(); // <-- UBAH
     return Container(
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
@@ -472,6 +406,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ),
           ),
+          //tulisan kalau belum ada notifikasi
+          if (preview.isEmpty)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 18),
+              child: Text(
+                'Belum ada notifikasi',
+                style: TextStyle(fontSize: 10, color: Color(0xFF8793A8)),
+              ),
+            ),
           for (int i = 0; i < preview.length; i++) ...[
             if (i > 0)
               const Divider(
@@ -633,7 +576,7 @@ class _InfoCard extends StatelessWidget {
 }
 
 class _NotifTile extends StatelessWidget {
-  final _NotifItem item;
+  final NotifData item; // <-- UBAH
   final VoidCallback? onTap;
 
   const _NotifTile({required this.item, this.onTap});
@@ -653,7 +596,12 @@ class _NotifTile extends StatelessWidget {
                 shape: BoxShape.circle,
                 color: Color(0xFFB4C3DC),
               ),
-              child: Icon(item.icon, size: 18, color: const Color(0xFF244B73)),
+              // <-- UBAH: ikon tetap, karena NotifData tidak punya field icon
+              child: const Icon(
+                Icons.info_outline,
+                size: 18,
+                color: Color(0xFF244B73),
+              ),
             ),
             const SizedBox(width: 10),
             Expanded(
@@ -681,7 +629,7 @@ class _NotifTile extends StatelessWidget {
             ),
             const SizedBox(width: 6),
             Text(
-              item.time,
+              item.tanggal, // <-- UBAH: gantinya item.time
               style: const TextStyle(fontSize: 8.5, color: Color(0xFF3A4A66)),
             ),
           ],

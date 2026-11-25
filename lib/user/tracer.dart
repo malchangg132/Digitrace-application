@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:digitrace/services/sesi.dart';
+import 'package:digitrace/services/tracer_service.dart'; 
+import 'package:digitrace/models/tracer_study.dart'; 
 import 'terima_kasih.dart';
 
 class TracerResult {
@@ -69,6 +72,8 @@ class _TracerScreenState extends State<TracerScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   AutovalidateMode _autovalidate = AutovalidateMode.disabled;
 
+  bool _menyimpan = false; // supaya tombol tidak terpencet dua kali
+
   final Map<String, TextEditingController> _c = {
     for (final n in _fieldNames) n: TextEditingController(),
   };
@@ -134,8 +139,15 @@ class _TracerScreenState extends State<TracerScreen> {
       );
   }
 
+  //ambil isi field, kalau kosong jadi null supaya di supabase kosong juga
+  String? _teks(String name) {
+    final t = _c[name]!.text.trim();
+    return t.isEmpty ? null : t;
+  }
+
   //jadi async supaya bisa menunggu halaman Terima Kasih ditutup
   Future<void> _submit() async {
+    if (_menyimpan) return;
     FocusScope.of(context).unfocus();
 
     final valid = _formKey.currentState?.validate() ?? false;
@@ -158,6 +170,38 @@ class _TracerScreenState extends State<TracerScreen> {
       }
       return;
     }
+
+    //simpan ke supabase lewat TracerService
+    final sesi = Sesi.akun;
+    if (sesi == null) {
+      _showSnack('Sesi habis, silakan login ulang');
+      return;
+    }
+
+    final tracer = TracerStudy(
+      idUser: sesi.id,
+      statusAktif: _teks('status'),
+      pendidikanTerakhir: _teks('pendidikan'),
+      namaUniversitas: _teks('universitas'),
+      programStudy: _teks('prodi'),
+      tahunMasuk: int.tryParse(_c['masuk']!.text.trim()),
+      namaPerusahaan: _teks('perusahaan'),
+      posisiJabatan: _teks('posisi'),
+      bidangPekerjaan: _teks('bidang'),
+      lokasiPekerjaan: _teks('lokasi'),
+    );
+
+    setState(() => _menyimpan = true);
+    try {
+      await TracerService().simpan(tracer);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _menyimpan = false);
+      _showSnack('Gagal menyimpan data tracer');
+      return;
+    }
+    if (!mounted) return;
+    setState(() => _menyimpan = false);
 
     final hasil = TracerResult(
       status: _c['status']!.text.trim(),
@@ -367,7 +411,7 @@ class _TracerScreenState extends State<TracerScreen> {
                         width: double.infinity,
                         height: 42,
                         child: ElevatedButton(
-                          onPressed: _submit,
+                          onPressed: _menyimpan ? null : _submit, // <-- UBAH
                           style: ElevatedButton.styleFrom(
                             backgroundColor: _isComplete
                                 ? const Color(0xFF244B73)

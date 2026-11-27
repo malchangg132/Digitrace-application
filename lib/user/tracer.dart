@@ -31,6 +31,7 @@ class TracerScreen extends StatefulWidget {
 }
 
 class _TracerScreenState extends State<TracerScreen> {
+  bool _isSaving = false;
   static const List<String> _fieldNames = [
     'nama',
     'ttl',
@@ -53,7 +54,7 @@ class _TracerScreenState extends State<TracerScreen> {
   ];
 
   // field wajib diisi
-  static const List<String> _requiredNames = [
+ List<String> get _requiredNames => [
     'nama',
     'ttl',
     'lulus',
@@ -62,17 +63,18 @@ class _TracerScreenState extends State<TracerScreen> {
     'hp',
     'alamat',
     'status',
+    if(_statusDipilih == 'Kuliah') ...[
     'pendidikan',
     'universitas',
     'prodi',
     'masuk',
     'statusPendidikan',
+    ],
   ];
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   AutovalidateMode _autovalidate = AutovalidateMode.disabled;
-
-  bool _menyimpan = false; // supaya tombol tidak terpencet dua kali
+  String? _statusDipilih;
 
   final Map<String, TextEditingController> _c = {
     for (final n in _fieldNames) n: TextEditingController(),
@@ -138,16 +140,15 @@ class _TracerScreenState extends State<TracerScreen> {
         ),
       );
   }
+    // mengambil isi field, jika kosong menjadi null
+String? _teks(String name) {
+  final t = _c[name]!.text.trim();
+  return t.isEmpty ? null : t;
+}
 
-  //ambil isi field, kalau kosong jadi null supaya di supabase kosong juga
-  String? _teks(String name) {
-    final t = _c[name]!.text.trim();
-    return t.isEmpty ? null : t;
-  }
-
-  //jadi async supaya bisa menunggu halaman Terima Kasih ditutup
-  Future<void> _submit() async {
-    if (_menyimpan) return;
+// proses pengiriman formulir
+Future<void> _submit() async {
+  if (_isSaving) return;
     FocusScope.of(context).unfocus();
 
     final valid = _formKey.currentState?.validate() ?? false;
@@ -191,17 +192,17 @@ class _TracerScreenState extends State<TracerScreen> {
       lokasiPekerjaan: _teks('lokasi'),
     );
 
-    setState(() => _menyimpan = true);
+    setState(() => _isSaving = true);
     try {
       await TracerService().simpan(tracer);
     } catch (e) {
       if (!mounted) return;
-      setState(() => _menyimpan = false);
+      setState(() => _isSaving = false);
       _showSnack('Gagal menyimpan data tracer');
       return;
     }
     if (!mounted) return;
-    setState(() => _menyimpan = false);
+    setState(() => _isSaving = false);
 
     final hasil = TracerResult(
       status: _c['status']!.text.trim(),
@@ -336,15 +337,47 @@ class _TracerScreenState extends State<TracerScreen> {
                       ]),
                       const SizedBox(height: 24),
 
-                      // status saat ini
-                      const _Heading('Status Saat Ini'),
-                      _SectionCard(children: [
-                        _f('status', 'Status',
-                            'Contoh: Bekerja/Wirausaha/kuliah/lainnya'),
-                      ]),
+                      // status saat ini diganti menjadi pilihan
+                      DropdownButtonFormField<String>(
+                        key: _k['status'],
+                        initialValue: _statusDipilih,
+                        decoration: InputDecoration(
+                          hintText: 'Pilih Status',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        validator: (value) =>
+                            value == null ? 'Status wajib dipilih' : null,
+                        items: const [
+                          DropdownMenuItem(
+                            value: 'Bekerja',
+                            child: Text('Bekerja'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'Kuliah',
+                            child: Text('Kuliah'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'Wirausaha',
+                            child: Text('Wirausaha'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'Lainnya',
+                            child: Text('Lainnya'),
+                          ),
+                        ],
+                        onChanged: (value) {
+                          setState(() {
+                            _statusDipilih = value;
+                            _c['status']!.text = value ?? '';
+                          });
+                        },
+                      ),
                       const SizedBox(height: 24),
 
-                      // data pendidikan
+                      // data pendidikan hanya muncul jika status dipilih
+                      if(_statusDipilih == 'Kuliah') ...[
                       const _Heading('Data Pendidikan'),
                       _SectionCard(children: [
                         _f('pendidikan', 'Pendidikan Terakhir',
@@ -381,8 +414,10 @@ class _TracerScreenState extends State<TracerScreen> {
                         ),
                       ]),
                       const SizedBox(height: 24),
+                    ],
 
-                      // data pekerjaan
+                      // data pekerjaan muncul jika memilih bekerja/wirausaha
+                      if (_statusDipilih == 'Bekerja' || _statusDipilih == 'Wirausaha') ...[
                       const _Heading('Data Pekerjaan'),
                       _SectionCard(children: [
                         _f('statusKerja', 'Status saat ini',
@@ -405,13 +440,14 @@ class _TracerScreenState extends State<TracerScreen> {
                             required: false, cap: TextCapitalization.words),
                       ]),
                       const SizedBox(height: 36),
+                    ],
 
                       // tombol selesai
                       SizedBox(
                         width: double.infinity,
                         height: 42,
                         child: ElevatedButton(
-                          onPressed: _menyimpan ? null : _submit, // <-- UBAH
+                          onPressed: _isSaving ? null : _submit, // <-- UBAH
                           style: ElevatedButton.styleFrom(
                             backgroundColor: _isComplete
                                 ? const Color(0xFF244B73)
@@ -431,7 +467,7 @@ class _TracerScreenState extends State<TracerScreen> {
                           ),
                         ),
                       ),
-                    ],
+                  ],
                   ),
                 ),
               ),

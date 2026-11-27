@@ -61,15 +61,23 @@ class NavigasiAdmin extends StatefulWidget {
 
 class _NavigasiAdminState extends State<NavigasiAdmin> {
   int _selectedIndex = 0;
-  final List<Widget> _pages = [
-    DashAdmin(),
-    DataAlumni(),
-    const Center(child: Text('Halaman Laporan')),
-    const Center(child: Text('Halaman Profil')),
-  ];
+  
 
   @override
   Widget build(BuildContext context) {
+    final List<Widget> _pages = [
+      DashAdmin(),
+      DataAlumni(
+        onBack: () {
+          setState(() {
+            _selectedIndex = 0;
+          });
+        },
+      ),
+      const Center(child: Text('Halaman Laporan')),
+      const Center(child: Text('Halaman Profil')),
+    ];
+
     return Scaffold(
       body: _pages[_selectedIndex],
         bottomNavigationBar: Bottombar(

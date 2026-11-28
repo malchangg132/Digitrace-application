@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:digitrace/services/sesi.dart';
-import 'package:digitrace/services/tracer_service.dart'; 
-import 'package:digitrace/models/tracer_study.dart'; 
+import 'package:digitrace/services/tracer_service.dart';
+import 'package:digitrace/models/tracer_study.dart';
 import 'terima_kasih.dart';
 
 class TracerResult {
@@ -53,6 +53,7 @@ class _TracerScreenState extends State<TracerScreen> {
   ];
 
   // field wajib diisi
+  //data pendidikan dihapus dari daftar wajib (boleh kosong)
   static const List<String> _requiredNames = [
     'nama',
     'ttl',
@@ -62,11 +63,6 @@ class _TracerScreenState extends State<TracerScreen> {
     'hp',
     'alamat',
     'status',
-    'pendidikan',
-    'universitas',
-    'prodi',
-    'masuk',
-    'statusPendidikan',
   ];
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
@@ -109,6 +105,12 @@ class _TracerScreenState extends State<TracerScreen> {
     return null;
   }
 
+  //tahun boleh kosong, tapi kalau diisi harus valid
+  String? _yearBoleh(String? v) {
+    if (v == null || v.trim().isEmpty) return null;
+    return _year(v, 'Tahun Masuk');
+  }
+
   String? _email(String? v) {
     final r = _req(v, 'Email');
     if (r != null) return r;
@@ -139,7 +141,7 @@ class _TracerScreenState extends State<TracerScreen> {
       );
   }
 
-  //ambil isi field, kalau kosong jadi null supaya di supabase kosong juga
+  // ambil isi field, kalau kosong jadi null supaya di supabase kosong juga
   String? _teks(String name) {
     final t = _c[name]!.text.trim();
     return t.isEmpty ? null : t;
@@ -171,7 +173,7 @@ class _TracerScreenState extends State<TracerScreen> {
       return;
     }
 
-    //simpan ke supabase lewat TracerService
+    // simpan ke supabase lewat TracerService
     final sesi = Sesi.akun;
     if (sesi == null) {
       _showSnack('Sesi habis, silakan login ulang');
@@ -348,14 +350,17 @@ class _TracerScreenState extends State<TracerScreen> {
                       const _Heading('Data Pendidikan'),
                       _SectionCard(children: [
                         _f('pendidikan', 'Pendidikan Terakhir',
-                            'Contoh: Perguruan tinggi'),
+                            'Contoh: Perguruan tinggi',
+                            required: false), 
                         _gap(),
                         _f('universitas', 'Nama Universitas',
                             'Contoh: Universitas Negeri Malang',
+                            required: false, 
                             cap: TextCapitalization.words),
                         _gap(),
                         _f('prodi', 'Program Studi',
                             'Contoh: Teknik Informatika',
+                            required: false, 
                             cap: TextCapitalization.words),
                         _gap(),
                         Row(
@@ -364,8 +369,9 @@ class _TracerScreenState extends State<TracerScreen> {
                             Expanded(
                               flex: 33,
                               child: _f('masuk', 'Tahun Masuk', '2023',
+                                  required: false, 
                                   keyboard: TextInputType.number,
-                                  validator: (v) => _year(v, 'Tahun Masuk'),
+                                  validator: _yearBoleh, 
                                   formatters: [
                                     FilteringTextInputFormatter.digitsOnly,
                                     LengthLimitingTextInputFormatter(4),
@@ -375,7 +381,8 @@ class _TracerScreenState extends State<TracerScreen> {
                             Expanded(
                               flex: 41,
                               child: _f('statusPendidikan',
-                                  'Status Pendidikan', 'Sudah Lulus'),
+                                  'Status Pendidikan', 'Sudah Lulus',
+                                  required: false), 
                             ),
                           ],
                         ),
@@ -411,7 +418,7 @@ class _TracerScreenState extends State<TracerScreen> {
                         width: double.infinity,
                         height: 42,
                         child: ElevatedButton(
-                          onPressed: _menyimpan ? null : _submit, // <-- UBAH
+                          onPressed: _menyimpan ? null : _submit,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: _isComplete
                                 ? const Color(0xFF244B73)

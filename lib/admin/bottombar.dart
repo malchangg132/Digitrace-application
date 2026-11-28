@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dash_admin.dart';
 import 'data_alumni.dart';
+import 'profil_admin.dart'; 
 
 class Bottombar extends StatefulWidget {
   final int selectedIndex;
@@ -65,7 +66,7 @@ class _NavigasiAdminState extends State<NavigasiAdmin> {
     DashAdmin(),
     DataAlumni(),
     const Center(child: Text('Halaman Laporan')),
-    const Center(child: Text('Halaman Profil')),
+    const ProfilAdmin(), 
   ];
 
   @override

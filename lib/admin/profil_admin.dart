@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
-import '../services/adminservice.dart'; // <-- BARU
-import '../services/sesi.dart'; // <-- BARU
+import '../services/adminservice.dart'; 
+import '../services/sesi.dart'; 
+import '../halaman/loginscreen.dart'; 
 import 'informasiakun.dart';
 import 'tentangaplikasi.dart';
 
@@ -13,17 +14,17 @@ class ProfilAdmin extends StatefulWidget {
 }
 
 class _ProfilAdminState extends State<ProfilAdmin> {
-  //data admin yang tampil, kosong tampil "-" // <-- BARU
+  //data admin yang tampil, kosong tampil "-" 
   String _nama = '-';
   String _email = '-';
 
   @override
   void initState() {
     super.initState();
-    _muatData(); // <-- BARU
+    _muatData(); 
   }
 
-  // ambil data admin dari supabase // <-- BARU
+  // ambil data admin dari supabase 
   Future<void> _muatData() async {
     try {
       final akun = await AdminService.ambilAkun(Sesi.akun!.id);
@@ -34,6 +35,40 @@ class _ProfilAdminState extends State<ProfilAdmin> {
       });
     } catch (e) {
       //kalau gagal, tetap tampil "-"
+    }
+  }
+
+  // tanya dulu mau logout atau tidak 
+  Future<void> _logout() async {
+    final ya = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Logout'),
+        content: const Text('Yakin ingin keluar dari akun?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Batal'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text(
+              'Keluar',
+              style: TextStyle(color: Color(0xFFA50E0E)),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (ya == true && mounted) {
+      Sesi.keluar(); //hapus data login
+      //buka halaman login, semua halaman sebelumnya dihapus
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => const Loginscreen()),
+        (route) => false,
+      );
     }
   }
 
@@ -61,7 +96,7 @@ class _ProfilAdminState extends State<ProfilAdmin> {
     );
   }
 
-  // ===== JUDUL =====
+  // judul
   Widget _buildJudul() {
     return const Text(
       'Profil Admin',
@@ -73,7 +108,7 @@ class _ProfilAdminState extends State<ProfilAdmin> {
     );
   }
 
-  // ===== KARTU PROFIL =====
+  // card profil
   Widget _buildKartuProfil() {
     return _KartuPutih(
       child: Stack(
@@ -95,7 +130,7 @@ class _ProfilAdminState extends State<ProfilAdmin> {
                     children: [
                       const SizedBox(height: 12),
                       Text(
-                        _nama, // <-- UBAH
+                        _nama, 
                         style: const TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
@@ -110,7 +145,7 @@ class _ProfilAdminState extends State<ProfilAdmin> {
                           const SizedBox(width: 4),
                           Expanded(
                             child: Text(
-                              _email, // <-- UBAH
+                              _email, 
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
                                 fontSize: 11,
@@ -151,7 +186,7 @@ class _ProfilAdminState extends State<ProfilAdmin> {
     );
   }
 
-  // ===== KARTU MENU =====
+  // menu
   Widget _buildKartuMenu(BuildContext context) {
     return _KartuPutih(
       child: Padding(
@@ -166,8 +201,8 @@ class _ProfilAdminState extends State<ProfilAdmin> {
                   context,
                   MaterialPageRoute(
                     builder: (_) => InformasiAkunAdmin(
-                      nama: _nama, // <-- UBAH
-                      email: _email, // <-- UBAH
+                      nama: _nama, 
+                      email: _email, 
                     ),
                   ),
                 );
@@ -193,7 +228,7 @@ class _ProfilAdminState extends State<ProfilAdmin> {
     );
   }
 
-  // ===== TOMBOL LOGOUT =====
+  // logout
   Widget _buildLogout(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 6),
@@ -212,11 +247,7 @@ class _ProfilAdminState extends State<ProfilAdmin> {
           width: double.infinity,
           height: 44,
           child: ElevatedButton.icon(
-            onPressed: () {
-              Sesi.keluar(); // <-- BARU
-              //kembali ke halaman paling awal (login)
-              Navigator.of(context).popUntil((route) => route.isFirst);
-            },
+            onPressed: _logout, 
             icon: const Icon(Icons.logout, size: 18, color: Colors.white),
             label: const Text(
               'Logout',
@@ -240,7 +271,7 @@ class _ProfilAdminState extends State<ProfilAdmin> {
   }
 }
 
-// ===== KARTU PUTIH DENGAN BAYANGAN =====
+// card putih
 class _KartuPutih extends StatelessWidget {
   final Widget child;
 
@@ -266,7 +297,7 @@ class _KartuPutih extends StatelessWidget {
   }
 }
 
-// ===== BARIS MENU =====
+// menu
 class _MenuItem extends StatelessWidget {
   final IconData icon;
   final String judul;

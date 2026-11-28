@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:digitrace/services/sesi.dart';
 import 'package:digitrace/services/tracer_service.dart'; 
+import 'package:digitrace/models/tracer_study.dart';
 
 class RiwayatData {
   // pendidikan
@@ -39,18 +40,7 @@ class RiwayatScreen extends StatefulWidget {
 
 class _RiwayatScreenState extends State<RiwayatScreen> {
   //data dr supabase
-  RiwayatData _data = const RiwayatData(
-    pendidikanTerakhir: '-',
-    namaUniversitas: '-',
-    programStudi: '-',
-    tahunMasuk: '-',
-    statusPendidikan: '-',
-    statusKerja: '-',
-    namaPerusahaan: '-',
-    posisi: '-',
-    bidang: '-',
-    lokasi: '-',
-  );
+  List<TracerStudy> _daftarRiwayat = [];
 
   // ambil data waktu halaman dibuka
   @override
@@ -71,22 +61,14 @@ class _RiwayatScreenState extends State<RiwayatScreen> {
     if (sesi == null) return;
 
     try {
-      final tracer = await TracerService().ambil(sesi.id);
-      if (tracer == null || !mounted) return;
+      final daftarTracer = await TracerService().ambilSemua(sesi.id);
+      if (!mounted) return;
+      if (daftarTracer.isEmpty) return;
+
+      final tracer = daftarTracer.first;
 
       setState(() {
-        _data = RiwayatData(
-          pendidikanTerakhir: _isi(tracer.pendidikanTerakhir),
-          namaUniversitas: _isi(tracer.namaUniversitas),
-          programStudi: _isi(tracer.programStudy),
-          tahunMasuk: _isi(tracer.tahunMasuk?.toString()),
-          statusPendidikan: '-', // belum ada kolomnya di tabel tracer_study
-          statusKerja: _isi(tracer.statusAktif),
-          namaPerusahaan: _isi(tracer.namaPerusahaan),
-          posisi: _isi(tracer.posisiJabatan),
-          bidang: _isi(tracer.bidangPekerjaan),
-          lokasi: _isi(tracer.lokasiPekerjaan),
-        );
+        _daftarRiwayat = daftarTracer;
       });
     } catch (e) {
       if (!mounted) return;
@@ -98,7 +80,6 @@ class _RiwayatScreenState extends State<RiwayatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final data = _data; // supaya isi di bawah tidak perlu diubah
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -140,27 +121,26 @@ class _RiwayatScreenState extends State<RiwayatScreen> {
                     const SizedBox(height: 40),
 
                     // riwayat pdndidikan
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 24),
-                      child: _SectionTitle(
-                        icon: Icons.school,
-                        text: 'Riwayat Pendidikan',
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    Padding(
+                    ..._daftarRiwayat.map((tracer) {
+                    return Column(
+                      children: [
+                        const SizedBox(height: 16),
+                      Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 24),
                       child: _InfoCard(
                         icon: Icons.menu_book_outlined,
                         rows: [
-                          ('Pendidikan terakhir', data.pendidikanTerakhir),
-                          ('Nama Universitas', data.namaUniversitas),
-                          ('Program Studi', data.programStudi),
-                          ('Tahun Masuk', data.tahunMasuk),
-                          ('Status Pendidikan', data.statusPendidikan),
+                          ('Pendidikan terakhir', _isi(tracer.pendidikanTerakhir)),
+                          ('Nama Universitas', _isi(tracer.namaUniversitas)),
+                          ('Program Studi', _isi(tracer.programStudy)),
+                          ('Tahun Masuk', _isi(tracer.tahunMasuk?.toString())),
+                          ('Status Pendidikan', '-'),
                         ],
                       ),
-                    ),
+                      )
+                      ],
+                    );
+                  }),
                     const SizedBox(height: 25),
 
                     // riwayat pkrjaan
@@ -172,19 +152,27 @@ class _RiwayatScreenState extends State<RiwayatScreen> {
                       ),
                     ),
                     const SizedBox(height: 20),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: _InfoCard(
-                        icon: Icons.work_outline,
-                        rows: [
-                          ('Status saat ini', data.statusKerja),
-                          ('Nama Perusahaan', data.namaPerusahaan),
-                          ('Posisi/Jabatan', data.posisi),
-                          ('Bidang Pekerjaan', data.bidang),
-                          ('Lokasi Perusahaan', data.lokasi),
-                        ],
-                      ),
-                    ),
+
+                    ..._daftarRiwayat.map((tracer) {
+                    return Column(
+                      children: [
+                          const SizedBox(height: 16),
+                        Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: _InfoCard(
+                          icon: Icons.work_outline,
+                          rows: [
+                            ('Status saat ini', _isi(tracer.statusAktif)),
+                            ('Nama Perusahaan', _isi(tracer.namaPerusahaan)),
+                            ('Posisi/Jabatan', _isi(tracer.posisiJabatan)),
+                            ('Bidang Pekerjaan', _isi(tracer.bidangPekerjaan)),
+                            ('Lokasi Perusahaan', _isi(tracer.lokasiPekerjaan)),
+                          ],
+                        ),
+                        )
+                      ],
+                    );
+                  }),
                   ],
                 ),
               ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class Grafik extends StatefulWidget {
   const Grafik({ Key? key }) : super(key: key);
@@ -9,8 +10,76 @@ class Grafik extends StatefulWidget {
 }
 
 class _GrafikState extends State<Grafik> {
+
+  final supabase = Supabase.instance.client;
+  late Future<Map<String, int>> _dataGrafik;
+  @override
+    void initState() {
+      super.initState();
+      _dataGrafik = _ambilDataGrafik();
+    }
+
+  //mengambil jumlah alumni berdasarkan 4 status
+  Future<Map<String, int>> _ambilDataGrafik() async {
+    final bekerja = await supabase
+        .from('alumni')
+        .select('id_user')
+        .eq('status_aktif', 'Bekerja');
+
+    final kuliah = await supabase
+        .from('alumni')
+        .select('id_user')
+        .eq('status_aktif', 'Kuliah');
+
+    final wirausaha = await supabase
+        .from('alumni')
+        .select('id_user')
+        .eq('status_aktif', 'Wirausaha');
+
+    final lainnya = await supabase
+        .from('alumni')
+        .select('id_user')
+        .eq('status_aktif', 'Lainnya');
+
+    return {
+      'bekerja': bekerja.length,
+      'kuliah': kuliah.length,
+      'wirausaha': wirausaha.length,
+      'lainnya': lainnya.length,
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
+    return FutureBuilder<Map<String, int>>(
+  future: _dataGrafik,
+  builder: (context, snapshot) {
+    if (snapshot.connectionState == ConnectionState.waiting) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+
+    if (snapshot.hasError) {
+      return Text('Gagal mengambil data grafik: ${snapshot.error}');
+    }
+
+    if (!snapshot.hasData || snapshot.data == null) {
+      return const Text('Data grafik tidak ditemukan');
+    }
+
+    final data = snapshot.data!;
+
+    final total = data['bekerja']! +
+        data['kuliah']! +
+        data['wirausaha']! +
+        data['lainnya']!;
+
+    double persentase(int jumlah) {
+      if (total == 0) return 0;
+      return jumlah / total * 100;
+    }
+
     return Align(
   alignment: Alignment.centerLeft,
   child: SizedBox(
@@ -27,25 +96,25 @@ class _GrafikState extends State<Grafik> {
               centerSpaceRadius: 0,
               sections: [
                 PieChartSectionData(
-                  value: 120,
-                  color: const Color.fromARGB(255, 163, 202, 238),
-                  radius: 100,
-                ),
-                PieChartSectionData(
-                  value: 80,
-                  color: const Color.fromARGB(255, 246, 244, 217),
-                  radius: 100,
-                ),
-                PieChartSectionData(
-                  value: 50,
-                  color: const Color.fromARGB(255, 201, 231, 206),
-                  radius: 100,
-                ),
-                PieChartSectionData(
-                  value: 20,
-                  color: const Color.fromARGB(255, 129, 166, 210),
-                  radius: 100,
-                ),
+                value: data['bekerja']!.toDouble(),
+                color: const Color.fromARGB(255, 163, 202, 238),
+                radius: 100,
+              ),
+              PieChartSectionData(
+                value: data['kuliah']!.toDouble(),
+                color: const Color.fromARGB(255, 246, 244, 217),
+                radius: 100,
+              ),
+              PieChartSectionData(
+                value: data['wirausaha']!.toDouble(),
+                color: const Color.fromARGB(255, 201, 231, 206),
+                radius: 100,
+              ),
+              PieChartSectionData(
+                value: data['lainnya']!.toDouble(),
+                color: const Color.fromARGB(255, 129, 166, 210),
+                radius: 100,
+              ),
               ],
             ),
           ),
@@ -76,9 +145,9 @@ class _GrafikState extends State<Grafik> {
                     ),
                   
                   const SizedBox(width: 50),
-                    const Text(
-                    '48%',
-                    style: TextStyle(
+                    Text(
+                    '${persentase(data['bekerja']!).toStringAsFixed(1)}%',
+                    style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
                     ),
@@ -105,12 +174,11 @@ class _GrafikState extends State<Grafik> {
                     ),
 
                     const SizedBox(width: 57),
-                  const Text('32%', 
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                  ),
-                 ),
+                    Text('${persentase(data['kuliah']!).toStringAsFixed(1)}%',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold
+                    ),)
                 ],
               ),
 
@@ -134,12 +202,11 @@ class _GrafikState extends State<Grafik> {
                     ),
                   
                   const SizedBox(width: 15,),
-                   const Text('12%',
-                   style: TextStyle(
+                  Text('${persentase(data['wirausaha']!).toStringAsFixed(1)}%',
+                  style: const TextStyle(
                     fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                   ),
-                  ),
+                    fontWeight: FontWeight.bold
+                  ),),
                 ],
               ),
 
@@ -161,12 +228,11 @@ class _GrafikState extends State<Grafik> {
                     ),
 
                   const SizedBox(width: 50,),
-                   const Text('8%',
-                   style: TextStyle(
+                  Text('${persentase(data['lainnya']!).toStringAsFixed(1)}%',
+                  style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
-                   ),
-                  ),
+                  ),),
                 ],
               )
             ],
@@ -175,6 +241,8 @@ class _GrafikState extends State<Grafik> {
       ],
     ),
   ),
-);
+  );
+  },
+    );
   }
 }

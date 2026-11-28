@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:digitrace/services/sesi.dart';
@@ -24,13 +25,18 @@ class TracerResult {
 class TracerScreen extends StatefulWidget {
   final Function(TracerResult) onSelesai;
 
-  const TracerScreen({super.key, required this.onSelesai});
+  const TracerScreen({
+    super.key,
+    required this.onSelesai,
+  });
 
   @override
   State<TracerScreen> createState() => _TracerScreenState();
 }
 
 class _TracerScreenState extends State<TracerScreen> {
+  bool _isSaving = false;
+
   static const List<String> _fieldNames = [
     'nama',
     'ttl',
@@ -52,29 +58,39 @@ class _TracerScreenState extends State<TracerScreen> {
     'lokasi',
   ];
 
-  // field wajib diisi
-  //data pendidikan dihapus dari daftar wajib (boleh kosong)
-  static const List<String> _requiredNames = [
-    'nama',
-    'ttl',
-    'lulus',
-    'jurusan',
-    'email',
-    'hp',
-    'alamat',
-    'status',
-  ];
+  // Field wajib diisi
+  List<String> get _requiredNames => [
+        'nama',
+        'ttl',
+        'lulus',
+        'jurusan',
+        'email',
+        'hp',
+        'alamat',
+        'status',
+        if (_statusDipilih == 'Kuliah') ...[
+          'pendidikan',
+          'universitas',
+          'prodi',
+          'masuk',
+          'statusPendidikan',
+        ],
+      ];
+
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
   AutovalidateMode _autovalidate = AutovalidateMode.disabled;
 
-  bool _menyimpan = false; // supaya tombol tidak terpencet dua kali
+  String? _statusDipilih;
 
   final Map<String, TextEditingController> _c = {
     for (final n in _fieldNames) n: TextEditingController(),
   };
+
   final Map<String, GlobalKey<FormFieldState<String>>> _k = {
-    for (final n in _fieldNames) n: GlobalKey<FormFieldState<String>>(),
+    for (final n in _fieldNames)
+      n: GlobalKey<FormFieldState<String>>(),
   };
 
   bool get _isComplete =>
@@ -88,20 +104,26 @@ class _TracerScreenState extends State<TracerScreen> {
     super.dispose();
   }
 
-  // validator
+  // Validator
   String? _req(String? v, String label) {
-    if (v == null || v.trim().isEmpty) return '$label wajib diisi';
+    if (v == null || v.trim().isEmpty) {
+      return '$label wajib diisi';
+    }
     return null;
   }
 
   String? _year(String? v, String label) {
     final r = _req(v, label);
+
     if (r != null) return r;
+
     final t = v!.trim();
     final y = int.tryParse(t);
+
     if (y == null || t.length != 4 || y < 1980 || y > 2100) {
       return 'Tahun tidak valid';
     }
+
     return null;
   }
 
@@ -113,19 +135,26 @@ class _TracerScreenState extends State<TracerScreen> {
 
   String? _email(String? v) {
     final r = _req(v, 'Email');
+
     if (r != null) return r;
-    if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(v!.trim())) {
+
+    if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')
+        .hasMatch(v!.trim())) {
       return 'Format email tidak valid';
     }
+
     return null;
   }
 
   String? _hp(String? v) {
     final r = _req(v, 'Nomor Hp');
+
     if (r != null) return r;
+
     if (v!.trim().length < 9 || v.trim().length > 15) {
       return 'Nomor Hp harus 9-15 digit';
     }
+
     return null;
   }
 
@@ -141,26 +170,32 @@ class _TracerScreenState extends State<TracerScreen> {
       );
   }
 
-  // ambil isi field, kalau kosong jadi null supaya di supabase kosong juga
+  // Mengambil isi field, jika kosong menjadi null
   String? _teks(String name) {
     final t = _c[name]!.text.trim();
     return t.isEmpty ? null : t;
   }
 
-  //jadi async supaya bisa menunggu halaman Terima Kasih ditutup
+  // Proses pengiriman formulir
   Future<void> _submit() async {
-    if (_menyimpan) return;
+    if (_isSaving) return;
+
     FocusScope.of(context).unfocus();
 
     final valid = _formKey.currentState?.validate() ?? false;
+
     if (!valid) {
-      setState(() => _autovalidate = AutovalidateMode.onUserInteraction);
+      setState(() {
+        _autovalidate = AutovalidateMode.onUserInteraction;
+      });
+
       _showSnack('Lengkapi data yang masih kosong atau salah');
 
-      // scroll ke field pertama yang error
+      // Scroll ke field pertama yang error
       for (final n in _fieldNames) {
         final state = _k[n]!.currentState;
         final ctx = _k[n]!.currentContext;
+
         if (state != null && state.hasError && ctx != null) {
           Scrollable.ensureVisible(
             ctx,
@@ -170,16 +205,19 @@ class _TracerScreenState extends State<TracerScreen> {
           break;
         }
       }
+
       return;
     }
 
-    // simpan ke supabase lewat TracerService
+    // Mengambil sesi pengguna
     final sesi = Sesi.akun;
+
     if (sesi == null) {
       _showSnack('Sesi habis, silakan login ulang');
       return;
     }
 
+    // Membuat object tracer study
     final tracer = TracerStudy(
       idUser: sesi.id,
       statusAktif: _teks('status'),
@@ -193,18 +231,45 @@ class _TracerScreenState extends State<TracerScreen> {
       lokasiPekerjaan: _teks('lokasi'),
     );
 
-    setState(() => _menyimpan = true);
+    // Biodata yang disimpan ke tabel alumni
+    final biodata = {
+      'tempattanggal_lahir': _teks('ttl'),
+      'tahun_lulus': int.tryParse(_c['lulus']!.text.trim()),
+      'jurusan': _teks('jurusan'),
+      'no_hp': _teks('hp'),
+      'alamat_lengkap': _teks('alamat'),
+    };
+
+    setState(() {
+      _isSaving = true;
+    });
+
     try {
-      await TracerService().simpan(tracer);
+      // Menyimpan tracer study dan biodata alumni
+      await TracerService().simpan(
+        tracer,
+        biodata: biodata,
+      );
     } catch (e) {
+      debugPrint('Gagal menyimpan tracer: $e');
+
       if (!mounted) return;
-      setState(() => _menyimpan = false);
+
+      setState(() {
+        _isSaving = false;
+      });
+
       _showSnack('Gagal menyimpan data tracer');
       return;
     }
-    if (!mounted) return;
-    setState(() => _menyimpan = false);
 
+    if (!mounted) return;
+
+    setState(() {
+      _isSaving = false;
+    });
+
+    // Data untuk halaman setelah pengisian
     final hasil = TracerResult(
       status: _c['status']!.text.trim(),
       namaUniversitas: _c['universitas']!.text.trim(),
@@ -215,13 +280,17 @@ class _TracerScreenState extends State<TracerScreen> {
 
     await Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => const TerimaKasihScreen()),
+      MaterialPageRoute(
+        builder: (_) => const TerimaKasihScreen(),
+      ),
     );
+
     if (!mounted) return;
+
     widget.onSelesai(hasil);
   }
 
-  // pembantu field
+  // Pembantu field
   Widget _f(
     String name,
     String label,
@@ -266,7 +335,7 @@ class _TracerScreenState extends State<TracerScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      //header
+                      // Header
                       Padding(
                         padding: const EdgeInsets.only(left: 4),
                         child: Column(
@@ -291,134 +360,246 @@ class _TracerScreenState extends State<TracerScreen> {
                           ],
                         ),
                       ),
+
                       const SizedBox(height: 26),
 
-                      // data diri alumni
+                      // Data diri alumni
                       const _Heading('Data Diri Alumni'),
-                      _SectionCard(children: [
-                        _f('nama', 'Nama Lengkap',
+
+                      _SectionCard(
+                        children: [
+                          _f(
+                            'nama',
+                            'Nama Lengkap',
                             'Contoh: Suendah Inarti Pratama',
-                            cap: TextCapitalization.words),
-                        _gap(),
-                        _f('ttl', 'Tempat, Tanggal lahir',
-                            'Contoh: 0097125163'),
-                        _gap(),
-                        _f('lulus', 'Tahun Lulus', '2023',
+                            cap: TextCapitalization.words,
+                          ),
+                          _gap(),
+                          _f(
+                            'ttl',
+                            'Tempat, Tanggal lahir',
+                            'Contoh: Malang, 18 April 2009',
+                          ),
+                          _gap(),
+                          _f(
+                            'lulus',
+                            'Tahun Lulus',
+                            '2023',
                             keyboard: TextInputType.number,
                             validator: (v) => _year(v, 'Tahun Lulus'),
                             formatters: [
                               FilteringTextInputFormatter.digitsOnly,
                               LengthLimitingTextInputFormatter(4),
-                            ]),
-                        _gap(),
-                        _f('jurusan', 'Jurusan', 'Rekayasa Perangkat Lunak',
-                            cap: TextCapitalization.words),
-                      ]),
+                            ],
+                          ),
+                          _gap(),
+                          _f(
+                            'jurusan',
+                            'Jurusan',
+                            'Rekayasa Perangkat Lunak',
+                            cap: TextCapitalization.words,
+                          ),
+                        ],
+                      ),
+
                       const SizedBox(height: 24),
 
-                      // kontak dan alamat
+                      // Kontak dan alamat
                       const _Heading('Kontak & Alamat'),
-                      _SectionCard(children: [
-                        _f('email', 'Email', 'Contoh: endah123@gmail.com',
+
+                      _SectionCard(
+                        children: [
+                          _f(
+                            'email',
+                            'Email',
+                            'Contoh: endah123@gmail.com',
                             keyboard: TextInputType.emailAddress,
                             cap: TextCapitalization.none,
-                            validator: _email),
-                        _gap(),
-                        _f('hp', 'Nomor Hp', 'Contoh: 08238237257',
+                            validator: _email,
+                          ),
+                          _gap(),
+                          _f(
+                            'hp',
+                            'Nomor Hp',
+                            'Contoh: 08238237257',
                             keyboard: TextInputType.phone,
                             validator: _hp,
                             formatters: [
                               FilteringTextInputFormatter.digitsOnly,
                               LengthLimitingTextInputFormatter(15),
-                            ]),
-                        _gap(),
-                        _f('alamat', 'Alamat Lengkap',
+                            ],
+                          ),
+                          _gap(),
+                          _f(
+                            'alamat',
+                            'Alamat Lengkap',
                             'Contoh: Jl Melati gang V',
-                            cap: TextCapitalization.words),
-                      ]),
+                            cap: TextCapitalization.words,
+                          ),
+                        ],
+                      ),
+
                       const SizedBox(height: 24),
 
-                      // status saat ini
-                      const _Heading('Status Saat Ini'),
-                      _SectionCard(children: [
-                        _f('status', 'Status',
-                            'Contoh: Bekerja/Wirausaha/kuliah/lainnya'),
-                      ]),
+                      // Pilihan status
+                      DropdownButtonFormField<String>(
+                        key: _k['status'],
+                        initialValue: _statusDipilih,
+                        decoration: InputDecoration(
+                          hintText: 'Pilih Status',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        validator: (value) =>
+                            value == null ? 'Status wajib dipilih' : null,
+                        items: const [
+                          DropdownMenuItem(
+                            value: 'Bekerja',
+                            child: Text('Bekerja'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'Kuliah',
+                            child: Text('Kuliah'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'Wirausaha',
+                            child: Text('Wirausaha'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'Lainnya',
+                            child: Text('Lainnya'),
+                          ),
+                        ],
+                        onChanged: (value) {
+                          setState(() {
+                            _statusDipilih = value;
+                            _c['status']!.text = value ?? '';
+                          });
+                        },
+                      ),
+
                       const SizedBox(height: 24),
 
-                      // data pendidikan
-                      const _Heading('Data Pendidikan'),
-                      _SectionCard(children: [
-                        _f('pendidikan', 'Pendidikan Terakhir',
-                            'Contoh: Perguruan tinggi',
-                            required: false), 
-                        _gap(),
-                        _f('universitas', 'Nama Universitas',
-                            'Contoh: Universitas Negeri Malang',
-                            required: false, 
-                            cap: TextCapitalization.words),
-                        _gap(),
-                        _f('prodi', 'Program Studi',
-                            'Contoh: Teknik Informatika',
-                            required: false, 
-                            cap: TextCapitalization.words),
-                        _gap(),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                      // Data pendidikan
+                      if (_statusDipilih == 'Kuliah') ...[
+                        const _Heading('Data Pendidikan'),
+
+                        _SectionCard(
                           children: [
-                            Expanded(
-                              flex: 33,
-                              child: _f('masuk', 'Tahun Masuk', '2023',
-                                  required: false, 
-                                  keyboard: TextInputType.number,
-                                  validator: _yearBoleh, 
-                                  formatters: [
-                                    FilteringTextInputFormatter.digitsOnly,
-                                    LengthLimitingTextInputFormatter(4),
-                                  ]),
+                            _f(
+                              'pendidikan',
+                              'Pendidikan Terakhir',
+                              'Contoh: Perguruan tinggi',
                             ),
-                            const Expanded(flex: 26, child: SizedBox()),
-                            Expanded(
-                              flex: 41,
-                              child: _f('statusPendidikan',
-                                  'Status Pendidikan', 'Sudah Lulus',
-                                  required: false), 
+                            _gap(),
+                            _f(
+                              'universitas',
+                              'Nama Universitas',
+                              'Contoh: Universitas Negeri Malang',
+                              cap: TextCapitalization.words,
+                            ),
+                            _gap(),
+                            _f(
+                              'prodi',
+                              'Program Studi',
+                              'Contoh: Teknik Informatika',
+                              cap: TextCapitalization.words,
+                            ),
+                            _gap(),
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  flex: 33,
+                                  child: _f(
+                                    'masuk',
+                                    'Tahun Masuk',
+                                    '2023',
+                                    keyboard: TextInputType.number,
+                                    validator: (v) => _year(v, 'Tahun Masuk'),
+                                    formatters: [
+                                      FilteringTextInputFormatter.digitsOnly,
+                                      LengthLimitingTextInputFormatter(4),
+                                    ],
+                                  ),
+                                ),
+                                const Expanded(
+                                  flex: 26,
+                                  child: SizedBox(),
+                                ),
+                                Expanded(
+                                  flex: 41,
+                                  child: _f(
+                                    'statusPendidikan',
+                                    'Status Pendidikan',
+                                    'Sudah Lulus',
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
-                      ]),
-                      const SizedBox(height: 24),
 
-                      // data pekerjaan
-                      const _Heading('Data Pekerjaan'),
-                      _SectionCard(children: [
-                        _f('statusKerja', 'Status saat ini',
-                            'Contoh: Sudah Bekerja',
-                            required: false),
-                        _gap(),
-                        _f('perusahaan', 'Nama Perusahaan',
-                            'Contoh: PT Malang',
-                            required: false, cap: TextCapitalization.words),
-                        _gap(),
-                        _f('posisi', 'Posisi/Jabatan',
-                            'Contoh: Web developer',
-                            required: false, cap: TextCapitalization.words),
-                        _gap(),
-                        _f('bidang', 'Bidang Pekerjaan', 'Contoh: IT',
-                            required: false),
-                        _gap(),
-                        _f('lokasi', 'Lokasi Perusahaan',
-                            'Contoh: Jl Melati gang V',
-                            required: false, cap: TextCapitalization.words),
-                      ]),
-                      const SizedBox(height: 36),
+                        const SizedBox(height: 24),
+                      ],
 
-                      // tombol selesai
+                      // Data pekerjaan
+                      if (_statusDipilih == 'Bekerja' ||
+                          _statusDipilih == 'Wirausaha') ...[
+                        const _Heading('Data Pekerjaan'),
+
+                        _SectionCard(
+                          children: [
+                            _f(
+                              'statusKerja',
+                              'Status saat ini',
+                              'Contoh: Sudah Bekerja',
+                              required: false,
+                            ),
+                            _gap(),
+                            _f(
+                              'perusahaan',
+                              'Nama Perusahaan',
+                              'Contoh: PT Malang',
+                              required: false,
+                              cap: TextCapitalization.words,
+                            ),
+                            _gap(),
+                            _f(
+                              'posisi',
+                              'Posisi/Jabatan',
+                              'Contoh: Web developer',
+                              required: false,
+                              cap: TextCapitalization.words,
+                            ),
+                            _gap(),
+                            _f(
+                              'bidang',
+                              'Bidang Pekerjaan',
+                              'Contoh: IT',
+                              required: false,
+                            ),
+                            _gap(),
+                            _f(
+                              'lokasi',
+                              'Lokasi Perusahaan',
+                              'Contoh: Jl Melati gang V',
+                              required: false,
+                              cap: TextCapitalization.words,
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 36),
+                      ],
+
+                      // Tombol selesai
                       SizedBox(
                         width: double.infinity,
                         height: 42,
                         child: ElevatedButton(
-                          onPressed: _menyimpan ? null : _submit,
+                          onPressed: _isSaving ? null : _submit,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: _isComplete
                                 ? const Color(0xFF244B73)
@@ -429,13 +610,22 @@ class _TracerScreenState extends State<TracerScreen> {
                               borderRadius: BorderRadius.circular(10),
                             ),
                           ),
-                          child: const Text(
-                            'Selesai',
-                            style: TextStyle(
-                              fontSize: 17,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
+                          child: _isSaving
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Text(
+                                  'Selesai',
+                                  style: TextStyle(
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
                         ),
                       ),
                     ],
@@ -452,6 +642,7 @@ class _TracerScreenState extends State<TracerScreen> {
 
 class _Heading extends StatelessWidget {
   final String text;
+
   const _Heading(this.text);
 
   @override
@@ -472,7 +663,10 @@ class _Heading extends StatelessWidget {
 
 class _SectionCard extends StatelessWidget {
   final List<Widget> children;
-  const _SectionCard({required this.children});
+
+  const _SectionCard({
+    required this.children,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -482,7 +676,9 @@ class _SectionCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFFDDE2EA)),
+        border: Border.all(
+          color: const Color(0xFFDDE2EA),
+        ),
         boxShadow: const [
           BoxShadow(
             color: Color(0x0F000000),
@@ -524,7 +720,10 @@ class _Field extends StatelessWidget {
 
   OutlineInputBorder _border(Color color) => OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: BorderSide(color: color, width: 1),
+        borderSide: BorderSide(
+          color: color,
+          width: 1,
+        ),
       );
 
   @override
@@ -549,15 +748,23 @@ class _Field extends StatelessWidget {
           keyboardType: keyboardType,
           textCapitalization: capitalization,
           inputFormatters: inputFormatters,
-          style: const TextStyle(fontSize: 12, color: Colors.black87),
+          style: const TextStyle(
+            fontSize: 12,
+            color: Colors.black87,
+          ),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: const TextStyle(fontSize: 10, color: Color(0xFFB4BAC5)),
+            hintStyle: const TextStyle(
+              fontSize: 10,
+              color: Color(0xFFB4BAC5),
+            ),
             isDense: true,
             filled: true,
             fillColor: Colors.white,
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 14,
+            ),
             border: _border(const Color(0xFFE4E8EF)),
             enabledBorder: _border(const Color(0xFFE4E8EF)),
             focusedBorder: _border(const Color(0xFF244B73)),

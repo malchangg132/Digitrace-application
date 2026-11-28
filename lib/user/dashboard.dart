@@ -42,7 +42,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
   //ambil data alumni yang sedang login dari supabase
   Future<void> _muatData() async {
     final akun = Sesi.akun;
-    if (akun == null) return;
+    debugPrint('DATA SESI: ${akun?.nama}');
+    debugPrint('ID AKUN: ${akun?.id}');
+    
+    if (akun == null) {
+      debugPrint('Sesi akun kosong!');
+      return;
+    }
+
+    setState(() {
+    });
 
     try {
       final tracer = await TracerService().ambil(akun.id);

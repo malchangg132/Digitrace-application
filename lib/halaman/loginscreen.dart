@@ -78,7 +78,7 @@ class _LoginscreenState extends State<Loginscreen> {
       } else if (hasil.role == 'guru') { 
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const DashboardPage()), 
+          MaterialPageRoute(builder: (context) => const DashGuru()), 
         );
       } else {
         // role guru, halamannya belum dibuat

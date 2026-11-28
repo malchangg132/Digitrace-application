@@ -62,9 +62,15 @@ class NavigasiAdmin extends StatefulWidget {
 
 class _NavigasiAdminState extends State<NavigasiAdmin> {
   int _selectedIndex = 0;
-  final List<Widget> _pages = [
+  late final List<Widget> _pages = [ 
     DashAdmin(),
-    DataAlumni(),
+    DataAlumni( 
+      onBack: () {
+        setState(() {
+          _selectedIndex = 0; //kembali ke beranda
+        });
+      },
+    ),
     const Center(child: Text('Halaman Laporan')),
     const ProfilAdmin(), 
   ];

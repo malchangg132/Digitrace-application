@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -23,6 +22,8 @@ class _DetailAlumniState extends State<DetailAlumni> {
   void initState() {
     super.initState();
     _tracerFuture = _ambilTracerTerbaru();
+
+    print('Data Alumni: ${widget.alumni}');
   }
 
   Future<void>_editBiodata() async {
@@ -49,7 +50,7 @@ class _DetailAlumniState extends State<DetailAlumni> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 TextField(
-                  controller: kontakController,
+                  controller: tempatController,
                   decoration: const InputDecoration(
                     labelText: 'Tempat, Tanggal Lahir',
                     border: OutlineInputBorder()
@@ -60,6 +61,24 @@ class _DetailAlumniState extends State<DetailAlumni> {
                   controller: tahunController,
                   keyboardType: TextInputType.number,
                   decoration: const InputDecoration(
+                    labelText: 'Tahun Lulus',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 12,),
+                TextField(
+                  controller: kontakController,
+                  keyboardType: TextInputType.phone,
+                  decoration: const InputDecoration(
+                    labelText: 'Kontak',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 12,),
+                TextField(
+                  controller: alamatController,
+                  maxLines: 3,
+                  decoration: const InputDecoration(
                     labelText: 'Alamat Lengkap',
                     border: OutlineInputBorder(),
                   ),
@@ -67,9 +86,62 @@ class _DetailAlumniState extends State<DetailAlumni> {
               ],
             ),
           ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Batal'),
+              ),
+              ElevatedButton(
+                onPressed: ()async {
+                  final tahun = tahunController.text.trim();
+                  if (tahun.isNotEmpty && int.tryParse(tahun) == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                      content: Text('Tahun harus berupa angka'),
+                      ),
+                    );
+                    return;
+                  }
+
+                  try {
+                    await supabase
+                    .from('alumni')
+                    .update({
+                      'tempattanggal_lahir':
+                        tempatController.text.trim(),
+                      'tahun_lulus':
+                        tahun.isEmpty ? null :int.parse(tahun),
+                      'no_hp': kontakController.text.trim(),
+                      'alamat_lengkap':alamatController.text.trim(),
+                    })
+                    .eq('id', widget.alumni['id']);
+
+                    widget.alumni['tempattanggal_lahir'] = tempatController.text.trim();
+                    widget.alumni['tahun_lulus'] = tahun.isEmpty ? null : int.parse(tahun);
+                    widget.alumni['no_hp'] = kontakController.text.trim();
+                    widget.alumni['alamat_lengkap'] = alamatController.text.trim();
+
+                    if (!mounted) return;
+
+                    setState(() {
+                      Navigator.pop(dialogContext);
+
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Biodata Diperbarui'),),);
+                    });
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal perbarui biodata: $e'),),);
+                  }
+                },
+                child: const Text('Simpan'),
+                ),
+          ],
         );
       },
     );
+
+    tempatController.dispose();
+    tahunController.dispose();
+    kontakController.dispose();
+    alamatController.dispose();
   }
 
   // Mengambil tracer study terbaru milik alumni
@@ -93,6 +165,263 @@ class _DetailAlumniState extends State<DetailAlumni> {
       .order('created_at', ascending: false);
 
     return List<Map<String, dynamic>>.from(data);
+  }
+
+  //untuk hapus akun alumni
+  Future<void> _hapusAkunAlumni() async {
+    final konfirmasi = await showDialog<bool>(
+      context:context,
+      builder: (context) => AlertDialog(
+        title: const Text('Hapus Riwayat'),
+        content: const Text('Apakah kamu yakin menghapus akun ini?'
+        '\nPenghapusan bersifat permanen'),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context, false), 
+          child: const Text('Batal'),
+        ),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+          onPressed: () => Navigator.pop(context, true), 
+          child: const Text('Hapus'),
+        ),
+      ]
+    ),
+   );
+
+   if (konfirmasi != true) return;
+
+   try {
+    final idUser = widget.alumni['id_user'];
+
+    //hapus semua riwayat
+    await supabase
+        .from('tracer_study')
+        .delete()
+        .eq('id_user', idUser);
+    //hapus semua biodata
+    await supabase
+        .from('alumni')
+        .delete()
+        .eq('id_user', idUser);
+    //hapus semua akun
+    await supabase
+        .from('user')
+        .delete()
+        .eq('id_user', idUser);
+
+    if (!mounted) return; 
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Akun telah dihapus'),),
+    );
+    Navigator.pop(context, true);      
+   } catch (e) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Gagal menghapus akun $e'),),
+    );
+   }
+  }
+
+  //untuk hapus riwayat
+  Future<void>_hapusTracer(Map<String, dynamic> tracer) async {
+    final konfirmasi = await showDialog<bool> (
+      context:context,
+      builder: (context) => AlertDialog(
+        title: const Text('Hapus Riwayat'),
+        content: const Text('Apakah kamu yakin menghapus riwayat ini?'
+        '\nData yang dihapus tidak bisa dikembalikan'),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context, false), 
+          child: const Text('Batal'),
+        ),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+          onPressed: () => Navigator.pop(context, true), 
+          child: const Text('Hapus'),
+        ),
+      ],
+     ),
+    );
+
+    if (konfirmasi != true) return;
+
+    try {
+      await supabase
+      .from('tracer_study')
+      .delete()
+      .eq('id_tracer', tracer['id_tracer']);
+
+      setState(() {
+        _tracerFuture = _ambilTracerTerbaru();
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Riwayat berhasil dihapus'),),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Gagal menghapus riwayat: $e'),),
+      );
+    }
+  }
+
+  //untuk edit riwayat
+  Future<void> _editTracer(Map<String, dynamic> tracer) async {
+    final statusController = TextEditingController(text: tracer['status_aktif']?.toString() ?? '');
+    final pendidikanController = TextEditingController(text: tracer['pendidikan_terakhir']?.toString() ?? '');
+    final universitasController = TextEditingController(text: tracer['nama_universitas']?.toString() ?? '');
+    final programController = TextEditingController(text: tracer['program_study']?.toString() ?? '');
+    final tahunController = TextEditingController(text: tracer['tahun_masuk']?.toString() ?? '');
+    final perusahaanController = TextEditingController(text: tracer['nama_perusahaan']?.toString() ?? '');
+    final posisiController = TextEditingController(text: tracer['posisi_jabatan']?.toString() ?? '');
+    final bidangController = TextEditingController(text: tracer['bidang_pekerjaan']?.toString() ?? '');
+    final lokasiController = TextEditingController(text: tracer['lokasi_pekerjaan']?.toString() ?? '');
+
+    await showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Edit Riwayat'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: statusController,
+                  decoration: const InputDecoration(
+                    labelText: 'Status Alumni',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 12,),
+                TextField(
+                  controller: pendidikanController,
+                  decoration: const InputDecoration(
+                    labelText: 'Pendidikan Terakhir',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 12,),
+                TextField(
+                  controller: universitasController,
+                  decoration: const InputDecoration(
+                    labelText: 'Nama Universitas',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 12,),
+                TextField(
+                  controller: programController,
+                  decoration: const InputDecoration(
+                    labelText: 'Program Studi',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 12,),
+                TextField(
+                  controller: tahunController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    labelText: 'Tahun Masuk',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 12,),
+                TextField(
+                  controller: perusahaanController,
+                  decoration: const InputDecoration(
+                    labelText: 'Nama Perusahaan',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 12,),
+                TextField(
+                  controller: posisiController,
+                  decoration: const InputDecoration(
+                    labelText: 'Posisi/Jabatan',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 12,),
+                TextField(
+                  controller: bidangController,
+                  decoration: const InputDecoration(
+                    labelText: 'Bidang Pekerjaan',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 12,),
+                TextField(
+                  controller: lokasiController,
+                  decoration: const InputDecoration(
+                    labelText: 'Lokasi Pekerjaan',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext), 
+              child: const Text('Batal'),
+              ),
+            ElevatedButton(
+              onPressed: () async {
+                final tahun = tahunController.text.trim();
+
+                if (tahun.isNotEmpty && int.tryParse(tahun) == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Tahun masuk berupa angka'),),
+                    );
+                    return;
+                }
+                try {
+                  await supabase
+                    .from('tracer_study')
+                    .update({
+                      'status_aktif': statusController.text.trim(),
+                      'pendidikan_terakhir': pendidikanController.text.trim(),
+                      'nama_universitas':universitasController.text.trim(),
+                      'program_study': programController.text.trim(),
+                      'tahun_masuk': tahun.isEmpty ? null : int.parse(tahun),
+                      'nama_perusahaan': perusahaanController.text.trim(),
+                      'posisi_jabatan' : posisiController.text.trim(),
+                      'lokasi_pekerjaan' : lokasiController.text.trim(),
+                    }).eq('id_tracer', tracer['id_tracer']);
+
+                    if(!mounted) return;
+
+                    setState(() {
+                      _tracerFuture = _ambilTracerTerbaru();
+                    });
+                    Navigator.pop(dialogContext);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Riwayat diperbarui'),),
+                      );
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                     SnackBar(content: Text('Gagal memperbarui: $e'),),
+                    );
+                }
+              }, 
+              child: const Text('Simpan'),
+              ),
+            ],
+          );
+      },
+    );
+
+    statusController.dispose();
+    pendidikanController.dispose();
+    universitasController.dispose();
+    programController.dispose();
+    tahunController.dispose();
+    perusahaanController.dispose();
+    posisiController.dispose();
+    bidangController.dispose();
+    lokasiController.dispose();
   }
 
   // Widget informasi biodata
@@ -252,56 +581,84 @@ class _DetailAlumniState extends State<DetailAlumni> {
             borderRadius: BorderRadius.circular(8),
             border: Border.all(color: const Color(0xFFCCCCCC)),
           ),
+
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Status: $status',
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF28527A),
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: 
+                      Text(
+                        'Status: $status',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF28527A),
+                        ),
+                      ),
+                    ),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          onPressed: () => _editTracer(tracer), 
+                          icon: const Icon(Icons.edit, color: Color(0xFF28527A),),
+                          tooltip: 'Edit Riwayat',
+                          ),
+                        IconButton(
+                          onPressed: () => _hapusTracer(tracer), 
+                          icon: const Icon(Icons.delete, color: Colors.red),
+                          tooltip: 'Hapus Riwayat',
+                          ),
+                      ],
+                    )
+                    ],
+                  ),
+
+                  //tanggal pengisian
+                  const SizedBox(height: 5),
+                  Text(
+                    'Tanggal pengisian: $tanggal',
+                    style: const TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
+                  const Divider(),
+
+                  //info pendidikan
+                  if (status.toLowerCase() == 'kuliah') ...[
+                    _infoItem(
+                      'Universitas',
+                      tracer['nama_universitas']?.toString(),
+                    ),
+                    _infoItem(
+                      'Program Studi',
+                      tracer['program_study']?.toString(),
+                    ),
+                    _infoItem(
+                      'Tahun Masuk',
+                      tracer['tahun_masuk']?.toString(),
+                    ),
+                  ] else if (status.toLowerCase() == 'bekerja' ||   //info pekerjaan
+                      status.toLowerCase() == 'wirausaha') ...[
+                    _infoItem(
+                      'Nama Instansi',
+                      tracer['nama_perusahaan']?.toString(),
+                    ),
+                    _infoItem(
+                      'Posisi',
+                      tracer['posisi_jabatan']?.toString(),
+                    ),
+                    _infoItem(
+                      'Bidang Pekerjaan',
+                      tracer['bidang_pekerjaan']?.toString(),
+                    ),
+                    _infoItem(
+                      'Lokasi Pekerjaan',
+                      tracer['lokasi_pekerjaan']?.toString(),
+                    ),
+                  ],
+                ],
               ),
-              const SizedBox(height: 5),
-              Text(
-                'Tanggal pengisian: $tanggal',
-                style: const TextStyle(fontSize: 12, color: Colors.grey),
-              ),
-              const Divider(),
-              if (status.toLowerCase() == 'kuliah') ...[
-                _infoItem(
-                  'Universitas',
-                  tracer['nama_universitas']?.toString(),
-                ),
-                _infoItem(
-                  'Program Studi',
-                  tracer['program_study']?.toString(),
-                ),
-                _infoItem(
-                  'Tahun Masuk',
-                  tracer['tahun_masuk']?.toString(),
-                ),
-              ] else if (status.toLowerCase() == 'bekerja' ||
-                  status.toLowerCase() == 'wirausaha') ...[
-                _infoItem(
-                  'Nama Instansi',
-                  tracer['nama_perusahaan']?.toString(),
-                ),
-                _infoItem(
-                  'Posisi',
-                  tracer['posisi_jabatan']?.toString(),
-                ),
-                _infoItem(
-                  'Bidang Pekerjaan',
-                  tracer['bidang_pekerjaan']?.toString(),
-                ),
-                _infoItem(
-                  'Lokasi Pekerjaan',
-                  tracer['lokasi_pekerjaan']?.toString(),
-                ),
-              ],
-            ],
-          ),
         );
       }).toList(),
     );
@@ -413,6 +770,17 @@ class _DetailAlumniState extends State<DetailAlumni> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            _judulBagian('Biodata Alumni'),
+                            IconButton(
+                              onPressed: _editBiodata, icon: Icon(Icons.edit, color: Color(0xFF28527A),),
+                            tooltip: 'Edit Biodata',
+                              ),
+                          ],
+                        ),
+
                         _infoItem(
                           'Tempat, Tanggal Lahir',
                           widget.alumni['tempattanggal_lahir']
@@ -498,6 +866,7 @@ class _DetailAlumniState extends State<DetailAlumni> {
                             style: const TextStyle(color: Colors.red),);
                           }
 
+                          
                           return _tampilanRiwayat(snapshot.data ?? []);
                         })
                       ],
@@ -506,6 +875,21 @@ class _DetailAlumniState extends State<DetailAlumni> {
                 ],
               ),
             ),
+            const SizedBox(height: 20,),
+
+            SizedBox(width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: _hapusAkunAlumni, 
+              icon: const Icon(Icons.delete),
+              label: const Text('Hapus akun alumni'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8),),
+              ),
+            ),
+           ),
           ],
         ),
       ),
